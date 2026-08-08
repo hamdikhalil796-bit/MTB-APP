@@ -1,0 +1,13 @@
+<resources>
+    <string name="update_dialog_title">Mise à jour disponible</string>
+    <string name="update_dialog_message">Une nouvelle version (%1$s) est disponible.</string>
+    <string name="update_release_notes_label">Nouveautés :</string>
+    <string name="update_now_button">Mettre à jour</string>
+    <string name="update_later_button">Plus tard</string>
+    <string name="update_mandatory_message">Cette mise à jour est requise pour continuer à utiliser l\'application.</string>
+    <string name="update_downloading">Téléchargement en cours…</string>
+    <string name="update_install_permission_title">Autorisation requise</string>
+    <string name="update_install_permission_message">Pour installer la mise à jour, autorisez l\'application à installer des applications inconnues, puis appuyez de nouveau sur \"Mettre à jour\".</string>
+    <string name="update_install_permission_button">Ouvrir les paramètres</string>
+    <string name="update_error">Erreur lors de la mise à jour. Réessayez.</string>
+</resources>

@@ -1,11 +1,11 @@
 rules_version = '2';
 
-// No real Firebase Auth yet (see LoginScreen.kt / storage.rules) — reads, and who is
-// allowed to write, stay open here, matching today's access model. What's new is
-// *shape* validation on writes to orders/products, closing the "any write is trusted
-// blindly" gap without requiring auth. Note: per-element validation of the `items`
-// list on an order isn't expressible in rules (no loops over variable-length lists)
-// — only presence/non-emptiness of `items` is checked, not individual line values.
+// No real Firebase Auth yet (see LoginScreen.kt) — reads, and who is allowed to write,
+// stay open here, matching today's access model. What's new is *shape* validation on
+// writes to orders/products, closing the "any write is trusted blindly" gap without
+// requiring auth. Note: per-element validation of the `items` list on an order isn't
+// expressible in rules (no loops over variable-length lists) — only presence/non-
+// emptiness of `items` is checked, not individual line values.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -19,6 +19,14 @@ service cloud.firestore {
       allow read: if true;
       allow delete: if true;
       allow create, update: if isValidOrder(request.resource.data);
+    }
+
+    // Published by hand via the Firebase Console each release (see AppUpdateManager.kt)
+    // — read-only from the app; console/Admin SDK access bypasses rules entirely, so
+    // this only blocks other clients from tampering with the update pointer.
+    match /app_meta/{docId} {
+      allow read: if true;
+      allow write: if false;
     }
   }
 

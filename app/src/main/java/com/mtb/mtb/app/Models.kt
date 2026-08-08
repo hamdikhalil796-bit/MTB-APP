@@ -30,3 +30,12 @@ data class SavedOrder(
     val items: List<OrderRowItem> = emptyList(), // Safe default prevents crash
     val timestamp: Long = 0L
 )
+
+// Parsed from the app_meta/latest_release Firestore doc — see AppUpdateManager.kt.
+data class AppUpdateInfo(
+    val versionCode: Long,
+    val versionName: String,
+    val apkUrl: String,
+    val releaseNotes: String,
+    val mandatory: Boolean
+)

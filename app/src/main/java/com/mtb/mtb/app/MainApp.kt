@@ -152,6 +152,13 @@ fun MainApp(db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
     // New state to handle order editing safely
     var editingOrder by remember { mutableStateOf<SavedOrder?>(null) }
 
+    var availableUpdate by remember { mutableStateOf<AppUpdateInfo?>(null) }
+    LaunchedEffect(Unit) {
+        AppUpdateManager.checkForUpdate(db, AppUpdateManager.installedVersionCode(context)) { update ->
+            availableUpdate = update
+        }
+    }
+
     LaunchedEffect(Unit) {
         // Fetch products from Firebase in real-time
         db.collection("products").addSnapshotListener { snapshot, error ->
@@ -424,6 +431,16 @@ fun MainApp(db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
                         showSettings = false
                     },
                     onDismiss = { showSettings = false }
+                )
+            }
+
+            // Update available (see AppUpdateManager.kt / public/README.md for how a
+            // release gets published). Dismissible unless the published release is
+            // flagged mandatory.
+            availableUpdate?.let { update ->
+                UpdateDialog(
+                    update = update,
+                    onDismiss = { availableUpdate = null }
                 )
             }
 

@@ -1,0 +1,13 @@
+<resources>
+    <string name="update_dialog_title">Aggiornamento disponibile</string>
+    <string name="update_dialog_message">È disponibile una nuova versione (%1$s).</string>
+    <string name="update_release_notes_label">Novità:</string>
+    <string name="update_now_button">Aggiorna ora</string>
+    <string name="update_later_button">Più tardi</string>
+    <string name="update_mandatory_message">Questo aggiornamento è necessario per continuare a usare l\'app.</string>
+    <string name="update_downloading">Download in corso…</string>
+    <string name="update_install_permission_title">Autorizzazione necessaria</string>
+    <string name="update_install_permission_message">Per installare l\'aggiornamento, consenti a questa app di installare app sconosciute, poi tocca di nuovo \"Aggiorna ora\".</string>
+    <string name="update_install_permission_button">Apri impostazioni</string>
+    <string name="update_error">Aggiornamento non riuscito. Riprova.</string>
+</resources>

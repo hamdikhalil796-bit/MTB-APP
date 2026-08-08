@@ -14,3 +14,15 @@
 .cxx
 .kotlin
 local.properties
+/app/release
+.firebase
+
+# Release APKs deployed to Firebase Hosting (see public/README.md) — built artifacts,
+# not source.
+public/*.apk
+
+# Release signing key + credentials — never commit these. Losing this file is fine
+# (just costly, forces reinstalls); leaking it is not.
+*.jks
+*.keystore
+key.properties

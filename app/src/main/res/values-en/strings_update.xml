@@ -1,0 +1,13 @@
+<resources>
+    <string name="update_dialog_title">Update available</string>
+    <string name="update_dialog_message">A new version (%1$s) is available.</string>
+    <string name="update_release_notes_label">What\'s new:</string>
+    <string name="update_now_button">Update now</string>
+    <string name="update_later_button">Later</string>
+    <string name="update_mandatory_message">This update is required to keep using the app.</string>
+    <string name="update_downloading">Downloading…</string>
+    <string name="update_install_permission_title">Permission needed</string>
+    <string name="update_install_permission_message">To install the update, allow this app to install unknown apps, then tap \"Update now\" again.</string>
+    <string name="update_install_permission_button">Open settings</string>
+    <string name="update_error">Update failed. Please try again.</string>
+</resources>
