@@ -1,0 +1,12 @@
+<resources>
+    <string name="stock_title">Stock Management</string>
+    <string name="stock_header_label">STOCK</string>
+    <string name="stock_empty">No articles in stock.\nTap \"+ Add article\" to get started.</string>
+    <string name="stock_product_not_found">Article not found</string>
+    <string name="stock_save_button">💾 Save stock</string>
+    <string name="stock_remove_title">Remove this article from stock?</string>
+    <string name="stock_remove_confirm">Remove \"%1$s\" from the stock list? Unsaved quantities will be lost.</string>
+    <string name="stock_remove_action">Remove</string>
+    <string name="stock_picker_title">Choose an article</string>
+    <string name="stock_picker_empty_all_added">All articles have already been added.</string>
+</resources>

@@ -1,0 +1,12 @@
+<resources>
+    <string name="stock_title">Gestion du Stock</string>
+    <string name="stock_header_label">STOCK</string>
+    <string name="stock_empty">Aucun article en stock.\nAppuyez sur \"+ Ajouter un article\" pour commencer.</string>
+    <string name="stock_product_not_found">Article introuvable</string>
+    <string name="stock_save_button">💾 Enregistrer le stock</string>
+    <string name="stock_remove_title">Retirer cet article du stock ?</string>
+    <string name="stock_remove_confirm">Voulez-vous retirer \"%1$s\" de la liste de stock ? Les quantités non enregistrées seront perdues.</string>
+    <string name="stock_remove_action">Retirer</string>
+    <string name="stock_picker_title">Choisir un article</string>
+    <string name="stock_picker_empty_all_added">Tous les articles ont déjà été ajoutés.</string>
+</resources>

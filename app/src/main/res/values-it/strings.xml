@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">MTB</string>
+
+    <!-- Shared strings reused across multiple screens -->
+    <string name="common_cancel">Annulla</string>
+    <string name="common_back">← Indietro</string>
+    <string name="common_back_home">← Home</string>
+    <string name="common_add_line">+ Riga</string>
+    <string name="common_save_order">💾 Salva</string>
+    <string name="common_total">TOTALE:</string>
+    <string name="common_ref">RIF</string>
+    <string name="common_article">ARTICOLO</string>
+    <string name="common_qty">QTÀ</string>
+    <string name="common_weight">PESO</string>
+    <string name="common_delete">Elimina</string>
+    <string name="common_saving">Salvataggio...</string>
+    <string name="error_with_message">Errore: %1$s</string>
+</resources>

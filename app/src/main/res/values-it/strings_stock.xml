@@ -1,0 +1,12 @@
+<resources>
+    <string name="stock_title">Gestione Magazzino</string>
+    <string name="stock_header_label">STOCK</string>
+    <string name="stock_empty">Nessun articolo in magazzino.\nTocca \"+ Aggiungi articolo\" per iniziare.</string>
+    <string name="stock_product_not_found">Articolo non trovato</string>
+    <string name="stock_save_button">💾 Salva magazzino</string>
+    <string name="stock_remove_title">Rimuovere questo articolo dal magazzino?</string>
+    <string name="stock_remove_confirm">Rimuovere \"%1$s\" dalla lista di magazzino? Le quantità non salvate andranno perse.</string>
+    <string name="stock_remove_action">Rimuovi</string>
+    <string name="stock_picker_title">Scegli un articolo</string>
+    <string name="stock_picker_empty_all_added">Tutti gli articoli sono già stati aggiunti.</string>
+</resources>

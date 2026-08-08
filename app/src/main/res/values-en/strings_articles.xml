@@ -1,0 +1,39 @@
+<resources>
+    <!-- ArticlesScreen -->
+    <string name="articles_title">Article List</string>
+    <string name="articles_search_placeholder">Search by ID or article...</string>
+    <string name="articles_empty">No matching article found.</string>
+    <string name="articles_view_photo">View</string>
+    <string name="articles_add_button">+ Add article</string>
+    <string name="articles_delete_title">Delete this article?</string>
+    <string name="articles_delete_confirm">Are you sure you want to delete \"%1$s\" (%2$s)? This action cannot be undone.</string>
+    <string name="gallery_no_photo">No photo saved for this article.</string>
+    <string name="gallery_chooser_title">Open image with</string>
+    <string name="gallery_error">Error opening the image.</string>
+
+    <!-- Shared between AddProductScreen + EditProductDialog -->
+    <string name="field_id_label">REF Code / ID</string>
+    <string name="field_description_label">ARTICLE (Description)</string>
+    <string name="field_photo_label">PHOTO</string>
+
+    <!-- AddProductScreen -->
+    <string name="add_product_view_all">View all articles →</string>
+    <string name="add_product_title">Add an Article</string>
+    <string name="add_product_photo_import">Import a photo</string>
+    <string name="add_product_photo_change">Change photo</string>
+    <string name="add_product_photo_attached">Photo attached!</string>
+    <string name="add_product_photo_none">No photo selected</string>
+    <string name="add_product_required_fields">Fields are required.</string>
+    <string name="add_product_photo_invalid">Invalid image, please try again.</string>
+    <string name="add_product_save_button">Save article</string>
+
+    <!-- EditProductDialog -->
+    <string name="edit_product_title">Edit article</string>
+    <string name="edit_product_weight_kg_label">WEIGHT (kg)</string>
+    <string name="edit_product_photo_add">Add</string>
+    <string name="edit_product_photo_change">Change</string>
+    <string name="edit_product_photo_attached">Photo attached</string>
+    <string name="edit_product_photo_none">No photo</string>
+    <string name="edit_product_photo_decode_error">Couldn\'t process this image. The previous photo was kept.</string>
+    <string name="edit_product_update_button">Update</string>
+</resources>

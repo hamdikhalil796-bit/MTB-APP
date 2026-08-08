@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">MTB</string>
+
+    <!-- Shared strings reused across multiple screens -->
+    <string name="common_cancel">Cancel</string>
+    <string name="common_back">← Back</string>
+    <string name="common_back_home">← Home</string>
+    <string name="common_add_line">+ Line</string>
+    <string name="common_save_order">💾 Save</string>
+    <string name="common_total">TOTAL:</string>
+    <string name="common_ref">REF</string>
+    <string name="common_article">ARTICLE</string>
+    <string name="common_qty">QTY</string>
+    <string name="common_weight">WEIGHT</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_saving">Saving...</string>
+    <string name="error_with_message">Error: %1$s</string>
+</resources>

@@ -1,0 +1,37 @@
+rules_version = '2';
+
+// No real Firebase Auth yet (see LoginScreen.kt / storage.rules) — reads, and who is
+// allowed to write, stay open here, matching today's access model. What's new is
+// *shape* validation on writes to orders/products, closing the "any write is trusted
+// blindly" gap without requiring auth. Note: per-element validation of the `items`
+// list on an order isn't expressible in rules (no loops over variable-length lists)
+// — only presence/non-emptiness of `items` is checked, not individual line values.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /products/{productId} {
+      allow read: if true;
+      allow delete: if true;
+      allow create, update: if isValidProduct(request.resource.data);
+    }
+
+    match /orders/{orderId} {
+      allow read: if true;
+      allow delete: if true;
+      allow create, update: if isValidOrder(request.resource.data);
+    }
+  }
+
+  function isValidProduct(data) {
+    return data.id is string && data.id.size() > 0
+        && data.reference is string && data.reference.size() > 0
+        && data.weight is string;
+  }
+
+  function isValidOrder(data) {
+    return data.client is string && data.client.size() > 0
+        && data.totalQty is number && data.totalQty > 0
+        && data.totalWeight is number && data.totalWeight >= 0
+        && data.items is list && data.items.size() > 0;
+  }
+}

@@ -1,0 +1,10 @@
+<resources>
+    <string name="home_welcome">Welcome (%1$s)</string>
+    <string name="role_admin">Admin</string>
+    <string name="role_guest">Guest</string>
+    <string name="home_tile_order">New Order</string>
+    <string name="home_tile_history">Order History</string>
+    <string name="home_tile_articles">Article List</string>
+    <string name="home_tile_add_product">Add Article</string>
+    <string name="home_tile_stock">Manage Stock</string>
+</resources>

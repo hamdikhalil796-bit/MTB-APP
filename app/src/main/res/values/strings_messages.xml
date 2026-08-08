@@ -1,0 +1,17 @@
+<resources>
+    <string name="msg_order_saved">Commande enregistrée sur Firebase !</string>
+    <string name="msg_order_deleted">Commande supprimée de Firebase</string>
+    <string name="msg_order_id_missing">Erreur : ID de la commande introuvable</string>
+    <string name="msg_order_updated">Commande mise à jour dans Firebase</string>
+    <string name="msg_product_deleted">Article supprimé de Firebase</string>
+    <string name="msg_product_duplicate_id">Un article avec cet ID existe déjà.</string>
+    <string name="msg_product_added">Article ajouté avec succès dans Firebase !</string>
+    <string name="msg_product_updated">Article mis à jour dans Firebase</string>
+    <string name="msg_stock_nothing_to_save">Aucun article à enregistrer.</string>
+    <string name="msg_stock_saved_with_errors">Stock enregistré avec des erreurs.</string>
+    <string name="msg_stock_updated">Stock mis à jour dans Firebase !</string>
+
+    <string name="notif_channel_new_orders">Nouvelles commandes</string>
+    <string name="notif_new_order_title">Nouvelle commande reçue</string>
+    <string name="notif_new_order_body">Une nouvelle commande vient d\'être enregistrée.</string>
+</resources>

@@ -1,0 +1,7 @@
+<resources>
+    <string name="login_username">Nome utente</string>
+    <string name="login_password">Password</string>
+    <string name="login_error_invalid">Credenziali non valide.</string>
+    <string name="login_submit">Accedi</string>
+    <string name="login_guest">Continua come ospite</string>
+</resources>

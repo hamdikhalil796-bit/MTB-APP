@@ -1,0 +1,13 @@
+<resources>
+    <string name="history_title_admin">Historique des Commandes (Mode Admin)</string>
+    <string name="history_title_readonly">Historique des Commandes (Lecture Seule)</string>
+    <string name="history_search_placeholder">Rechercher par client, date ou ID...</string>
+    <string name="history_empty">Aucune commande trouvée.</string>
+    <string name="history_client_label">Client : %1$s</string>
+    <string name="history_date_label">Date : %1$s</string>
+    <string name="history_summary">%1$s articles | %2$s kg</string>
+    <string name="history_details_label">Détail des articles :</string>
+    <string name="history_qty_label">Qté: %1$s</string>
+    <string name="history_delete_title">Supprimer la commande ?</string>
+    <string name="history_delete_confirm">Voulez-vous vraiment supprimer la commande de \"%1$s\" du %2$s ? Cette action est irréversible.</string>
+</resources>

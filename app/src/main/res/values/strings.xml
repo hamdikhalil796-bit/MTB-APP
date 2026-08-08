@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">MTB</string>
+
+    <!-- Shared strings reused across multiple screens -->
+    <string name="common_cancel">Annuler</string>
+    <string name="common_back">← Retour</string>
+    <string name="common_back_home">← Accueil</string>
+    <string name="common_add_line">+ Ligne</string>
+    <string name="common_save_order">💾 Enregistrer</string>
+    <string name="common_total">TOTAL :</string>
+    <string name="common_ref">REF</string>
+    <string name="common_article">ARTICLE</string>
+    <string name="common_qty">QTE</string>
+    <string name="common_weight">POIDS</string>
+    <string name="common_delete">Supprimer</string>
+    <string name="common_saving">Enregistrement...</string>
+    <string name="error_with_message">Erreur: %1$s</string>
+
+    <!-- Not user-facing: must stay identical to NEW_ORDER_NOTIFICATION_CHANNEL_ID in OrderNotificationService.kt -->
+    <string name="notif_channel_new_orders_id" translatable="false">new_orders</string>
+</resources>

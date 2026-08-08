@@ -1,0 +1,15 @@
+<resources>
+    <string name="order_form_title">Nouvelle Commande</string>
+    <string name="order_client_label">Client : </string>
+    <string name="order_not_found">Non trouvé</string>
+    <string name="order_validation_required">Veuillez remplir au moins une ligne valide.</string>
+    <string name="order_export_pdf">Exporter PDF</string>
+    <string name="order_pdf_date">Date : %1$s</string>
+    <string name="order_pdf_client">CLIENT : %1$s</string>
+    <string name="order_pdf_qty_header">QUANTITÉ</string>
+    <string name="order_pdf_weight_header">POIDS // KG</string>
+    <string name="order_pdf_success">Succès : PDF enregistré dans Téléchargements !</string>
+    <string name="order_pdf_failure">Échec de la création du PDF : %1$s</string>
+    <string name="order_edit_title">Modifier la commande</string>
+    <string name="order_edit_number_date">N° %1$s — %2$s</string>
+</resources>

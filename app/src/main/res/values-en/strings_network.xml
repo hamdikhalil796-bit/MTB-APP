@@ -1,0 +1,5 @@
+<resources>
+    <string name="network_offline_title">No connection</string>
+    <string name="network_offline_message">This app needs an internet connection to work. Check your connection and try again.</string>
+    <string name="network_retry_button">Retry</string>
+</resources>

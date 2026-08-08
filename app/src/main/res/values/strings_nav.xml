@@ -1,0 +1,7 @@
+<resources>
+    <string name="nav_home">Accueil</string>
+    <string name="nav_orders">Commande</string>
+    <string name="nav_history">Historique</string>
+    <string name="nav_articles">Articles</string>
+    <string name="nav_stock">Stock</string>
+</resources>

@@ -1,0 +1,13 @@
+<resources>
+    <string name="history_title_admin">Order History (Admin Mode)</string>
+    <string name="history_title_readonly">Order History (Read Only)</string>
+    <string name="history_search_placeholder">Search by client, date or ID...</string>
+    <string name="history_empty">No orders found.</string>
+    <string name="history_client_label">Client: %1$s</string>
+    <string name="history_date_label">Date: %1$s</string>
+    <string name="history_summary">%1$s articles | %2$s kg</string>
+    <string name="history_details_label">Article details:</string>
+    <string name="history_qty_label">Qty: %1$s</string>
+    <string name="history_delete_title">Delete this order?</string>
+    <string name="history_delete_confirm">Are you sure you want to delete the order for \"%1$s\" from %2$s? This action cannot be undone.</string>
+</resources>

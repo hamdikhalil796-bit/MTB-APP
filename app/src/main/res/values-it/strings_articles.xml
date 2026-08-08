@@ -1,0 +1,39 @@
+<resources>
+    <!-- ArticlesScreen -->
+    <string name="articles_title">Elenco Articoli</string>
+    <string name="articles_search_placeholder">Cerca per ID o articolo...</string>
+    <string name="articles_empty">Nessun articolo corrispondente trovato.</string>
+    <string name="articles_view_photo">Vedi</string>
+    <string name="articles_add_button">+ Aggiungi articolo</string>
+    <string name="articles_delete_title">Eliminare l\'articolo?</string>
+    <string name="articles_delete_confirm">Vuoi davvero eliminare \"%1$s\" (%2$s)? Questa azione è irreversibile.</string>
+    <string name="gallery_no_photo">Nessuna foto salvata per questo articolo.</string>
+    <string name="gallery_chooser_title">Apri immagine con</string>
+    <string name="gallery_error">Errore durante l\'apertura dell\'immagine.</string>
+
+    <!-- Shared between AddProductScreen + EditProductDialog -->
+    <string name="field_id_label">Codice RIF / ID</string>
+    <string name="field_description_label">ARTICOLO (Descrizione)</string>
+    <string name="field_photo_label">FOTO</string>
+
+    <!-- AddProductScreen -->
+    <string name="add_product_view_all">Vedi tutti gli articoli →</string>
+    <string name="add_product_title">Aggiungi un Articolo</string>
+    <string name="add_product_photo_import">Importa una foto</string>
+    <string name="add_product_photo_change">Cambia foto</string>
+    <string name="add_product_photo_attached">Foto allegata!</string>
+    <string name="add_product_photo_none">Nessuna foto selezionata</string>
+    <string name="add_product_required_fields">I campi sono obbligatori.</string>
+    <string name="add_product_photo_invalid">Immagine non valida, riprova.</string>
+    <string name="add_product_save_button">Salva articolo</string>
+
+    <!-- EditProductDialog -->
+    <string name="edit_product_title">Modifica articolo</string>
+    <string name="edit_product_weight_kg_label">PESO (kg)</string>
+    <string name="edit_product_photo_add">Aggiungi</string>
+    <string name="edit_product_photo_change">Cambia</string>
+    <string name="edit_product_photo_attached">Foto allegata</string>
+    <string name="edit_product_photo_none">Nessuna foto</string>
+    <string name="edit_product_photo_decode_error">Impossibile elaborare questa immagine. È stata mantenuta la foto precedente.</string>
+    <string name="edit_product_update_button">Aggiorna</string>
+</resources>

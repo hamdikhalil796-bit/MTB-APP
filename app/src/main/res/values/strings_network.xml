@@ -1,0 +1,5 @@
+<resources>
+    <string name="network_offline_title">Pas de connexion</string>
+    <string name="network_offline_message">L\'application a besoin d\'internet pour fonctionner. Vérifiez votre connexion puis réessayez.</string>
+    <string name="network_retry_button">Réessayer</string>
+</resources>
