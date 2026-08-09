@@ -10,6 +10,8 @@
     <string name="order_pdf_weight_header">POIDS // KG</string>
     <string name="order_pdf_success">Succès : PDF enregistré dans Téléchargements !</string>
     <string name="order_pdf_failure">Échec de la création du PDF : %1$s</string>
+    <string name="order_pdf_chooser_title">Ouvrir le PDF avec</string>
+    <string name="order_pdf_open_error">PDF enregistré, mais impossible de l\'ouvrir.</string>
     <string name="order_edit_title">Modifier la commande</string>
     <string name="order_edit_number_date">N° %1$s — %2$s</string>
 </resources>

@@ -10,6 +10,8 @@
     <string name="order_pdf_weight_header">WEIGHT // KG</string>
     <string name="order_pdf_success">Success: PDF saved to Downloads!</string>
     <string name="order_pdf_failure">Failed to create PDF: %1$s</string>
+    <string name="order_pdf_chooser_title">Open PDF with</string>
+    <string name="order_pdf_open_error">PDF saved, but couldn\'t open it.</string>
     <string name="order_edit_title">Edit order</string>
     <string name="order_edit_number_date">No. %1$s — %2$s</string>
 </resources>

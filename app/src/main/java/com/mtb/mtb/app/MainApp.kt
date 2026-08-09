@@ -365,6 +365,13 @@ fun MainApp(db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
                                         }
                                 }
                             }
+                        },
+                        onRemoveClick = { productId ->
+                            db.collection("products").document(productId)
+                                .update("stock", "0")
+                                .addOnSuccessListener {
+                                    showMessage(msgStockUpdated)
+                                }
                         }
                     )
                 }

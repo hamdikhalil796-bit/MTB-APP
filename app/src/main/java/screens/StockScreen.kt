@@ -42,7 +42,8 @@ import com.mtb.mtb.app.ProductItem
 @Composable
 fun StockScreen(
     products: List<ProductItem>,
-    onSaveStockClick: (Map<String, String>, (Boolean, String) -> Unit) -> Unit
+    onSaveStockClick: (Map<String, String>, (Boolean, String) -> Unit) -> Unit,
+    onRemoveClick: (String) -> Unit = {}
 ) {
     // productId -> quantity, only for rows explicitly added in this session
     var stockRows by remember { mutableStateOf(linkedMapOf<String, String>()) }
@@ -321,7 +322,11 @@ fun StockScreen(
             },
             confirmButton = {
                 TextButton(onClick = {
+                    // Also clears the product's stock in Firestore — otherwise the prefill
+                    // (which pulls in every product with stock > 0) brings this row right
+                    // back the next time the screen loads, since nothing zeroed it there.
                     removeRow(productId)
+                    onRemoveClick(productId)
                     productIdPendingRemoval = null
                 }) {
                     Text(stringResource(R.string.stock_remove_action), color = MtbWebColors.DeleteRed, fontWeight = FontWeight.Bold)

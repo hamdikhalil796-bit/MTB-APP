@@ -1,10 +1,12 @@
 package com.mtb.mtb.app.screens
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
 import android.os.Environment
+import androidx.core.content.FileProvider
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -549,6 +551,21 @@ fun exportOrderToPdf(
         pdfDocument.close()
 
         showMessage(context.getString(R.string.order_pdf_success))
+
+        try {
+            val authority = "${context.packageName}.fileprovider"
+            val uri = FileProvider.getUriForFile(context, authority, file)
+            val viewIntent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/pdf")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            context.startActivity(Intent.createChooser(viewIntent, context.getString(R.string.order_pdf_chooser_title)))
+        } catch (e: Exception) {
+            // The PDF is already saved at this point — a missing PDF viewer just means we
+            // can't hand off to one, not that the export itself failed.
+            e.printStackTrace()
+            showMessage(context.getString(R.string.order_pdf_open_error))
+        }
 
     } catch (e: Exception) {
         e.printStackTrace()
