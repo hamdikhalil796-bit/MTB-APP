@@ -16,6 +16,9 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,10 +28,14 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.PopupProperties
@@ -38,6 +45,7 @@ import com.mtb.mtb.app.MtbTextSizes
 import com.mtb.mtb.app.MtbWebColors
 import com.mtb.mtb.app.OrderRowItem
 import com.mtb.mtb.app.ProductItem
+import com.mtb.mtb.ui.theme.NeumorphicCard
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -50,7 +58,8 @@ fun CompactTextField(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     placeholder: String = "",
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    verticalPadding: Dp = 10.dp
 ) {
     BasicTextField(
         value = value,
@@ -58,8 +67,16 @@ fun CompactTextField(
         modifier = modifier
             .background(MtbWebColors.CardWhite, RoundedCornerShape(6.dp))
             .border(1.dp, MtbWebColors.BorderGray, RoundedCornerShape(6.dp))
-            .padding(horizontal = MtbSpacing.xs, vertical = 10.dp),
-        textStyle = LocalTextStyle.current.copy(fontSize = MtbTextSizes.body, color = MtbWebColors.TextDark),
+            .padding(horizontal = MtbSpacing.xs, vertical = verticalPadding),
+        // lineHeight reset to Unspecified: leaving it inherited from LocalTextStyle (24.sp,
+        // sized for the app's 16sp base body text) reserved that much vertical space for
+        // every line here regardless of the smaller fontSize below, keeping the field tall
+        // no matter how much the outer padding shrank.
+        textStyle = LocalTextStyle.current.copy(
+            fontSize = MtbTextSizes.body,
+            lineHeight = TextUnit.Unspecified,
+            color = MtbWebColors.TextDark
+        ),
         keyboardOptions = keyboardOptions,
         singleLine = true,
         decorationBox = { innerTextField ->
@@ -78,7 +95,7 @@ fun OrderFormScreen(
     products: List<ProductItem>,
     initialRows: List<OrderRowItem> = listOf(OrderRowItem()),
     onRowsChanged: (List<OrderRowItem>) -> Unit = {},
-    onSaveOrderClick: (List<OrderRowItem>, Double, Double, String, (Boolean, String) -> Unit) -> Unit,
+    onSaveOrderClick: (List<OrderRowItem>, Double, Double, String, String, (Boolean, String) -> Unit) -> Unit,
     showMessage: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -92,6 +109,7 @@ fun OrderFormScreen(
     var clientExpanded by remember { mutableStateOf(false) }
     var selectedClient by remember { mutableStateOf("FILIN") }
     val clients = listOf("FILIN", "LCN")
+    var orderNumber by remember { mutableStateOf("") }
 
     fun updateRow(index: Int, newId: String? = null, newQty: String? = null) {
         val currentRow = rows[index]
@@ -116,9 +134,19 @@ fun OrderFormScreen(
             calculatedWeight = calcWeight
         )
 
-        rows = rows.toMutableList().apply { set(index, updatedRow) }
+        rows = rows.toMutableList().apply {
+            set(index, updatedRow)
+            // Choosing an article on the last line opens a fresh empty line, so "+ Line" is rarely needed.
+            if (index == lastIndex && newId != null && product != null) add(OrderRowItem())
+        }
         onRowsChanged(rows)
     }
+
+    // First line each article appears on, to flag the same article entered twice.
+    val firstLineOf = rows.withIndex()
+        .filter { it.value.id.isNotBlank() }
+        .groupBy({ it.value.id.trim().lowercase() }, { it.index })
+        .mapValues { it.value.first() }
 
     val totalQty = rows.sumOf { it.qty.toDoubleOrNull() ?: 0.0 }
     val totalWeight = rows.sumOf { it.calculatedWeight.toDoubleOrNull() ?: 0.0 }
@@ -130,11 +158,11 @@ fun OrderFormScreen(
             .padding(4.dp),
         contentAlignment = Alignment.TopCenter
     ) {
-        Card(
+        NeumorphicCard(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = MtbWebColors.CardWhite),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            containerColor = MtbWebColors.CardWhite,
+            elevation = 2.dp
         ) {
             Column(modifier = Modifier.padding(8.dp)) {
 
@@ -156,6 +184,12 @@ fun OrderFormScreen(
                         .padding(bottom = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    Row(
+                        modifier = Modifier
+                            .background(MtbWebColors.BgBeige, RoundedCornerShape(8.dp))
+                            .padding(start = 10.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                     Text(stringResource(R.string.order_client_label), fontWeight = FontWeight.Bold, fontSize = MtbTextSizes.label, color = MtbWebColors.HeadingBrown)
                     Spacer(modifier = Modifier.width(MtbSpacing.sm))
                     Box {
@@ -166,7 +200,7 @@ fun OrderFormScreen(
                             contentPadding = PaddingValues(horizontal = MtbSpacing.md, vertical = 0.dp)
                         ) {
                             Text(text = selectedClient, color = MtbWebColors.TextDark, fontSize = MtbTextSizes.label)
-                            Text(text = " ▼", fontSize = MtbTextSizes.caption, color = MtbWebColors.MutedText)
+                            Icon(Icons.Filled.ArrowDropDown, contentDescription = null, tint = MtbWebColors.MutedText)
                         }
                         DropdownMenu(
                             expanded = clientExpanded,
@@ -192,6 +226,16 @@ fun OrderFormScreen(
                             }
                         }
                     }
+                    }
+                    Spacer(modifier = Modifier.width(MtbSpacing.md))
+                    CompactTextField(
+                        value = orderNumber,
+                        onValueChange = { orderNumber = it },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(40.dp),
+                        placeholder = stringResource(R.string.order_number_placeholder)
+                    )
                 }
 
                 // Vertical Portrait Table
@@ -222,11 +266,18 @@ fun OrderFormScreen(
                             .weight(1f)
                     ) {
                         itemsIndexed(rows) { index, row ->
+                            val notFound = row.reference == notFoundLabel
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .animateItem()
-                                    .background(if (index % 2 == 1) MtbWebColors.HoverBg else MtbWebColors.CardWhite)
+                                    .background(
+                                        when {
+                                            notFound -> MtbWebColors.ErrorBannerBg
+                                            index % 2 == 1 -> MtbWebColors.HoverBg
+                                            else -> MtbWebColors.CardWhite
+                                        }
+                                    )
                                     .padding(horizontal = MtbSpacing.xs, vertical = MtbSpacing.sm),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -298,16 +349,40 @@ fun OrderFormScreen(
                                     }
                                 }
 
-                                Text(
-                                    text = row.reference.ifEmpty { "-" },
+                                val rowProduct = products.find { it.id.equals(row.id, ignoreCase = true) }
+                                val duplicateOf = firstLineOf[row.id.trim().lowercase()]?.takeIf { row.id.isNotBlank() && it != index }
+                                Column(
                                     modifier = Modifier
                                         .weight(1.9f)
-                                        .padding(end = MtbSpacing.xs),
-                                    color = if (row.reference == notFoundLabel) MtbWebColors.DeleteRed else MtbWebColors.TextDark,
-                                    fontSize = MtbTextSizes.label,
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis
-                                )
+                                        .padding(end = MtbSpacing.xs)
+                                ) {
+                                    Text(
+                                        text = row.reference.ifEmpty { "-" },
+                                        color = if (notFound) MtbWebColors.DeleteRed else MtbWebColors.HeadingBrown,
+                                        fontWeight = FontWeight.SemiBold,
+                                        fontSize = MtbTextSizes.label,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    if (rowProduct != null) {
+                                        val stock = rowProduct.stock.trim().toIntOrNull() ?: 0
+                                        val ordered = row.qty.toDoubleOrNull() ?: 0.0
+                                        Text(
+                                            text = stringResource(R.string.order_stock_hint, stock.toString()),
+                                            color = if (stock < ordered) MtbWebColors.DeleteRed else MtbWebColors.SuccessGreen,
+                                            fontWeight = FontWeight.SemiBold,
+                                            fontSize = MtbTextSizes.caption
+                                        )
+                                    }
+                                    if (duplicateOf != null) {
+                                        Text(
+                                            text = stringResource(R.string.order_duplicate_line, (duplicateOf + 1).toString()),
+                                            color = MtbWebColors.MutedText,
+                                            fontStyle = FontStyle.Italic,
+                                            fontSize = MtbTextSizes.caption
+                                        )
+                                    }
+                                }
 
                                 CompactTextField(
                                     value = row.qty,
@@ -316,7 +391,11 @@ fun OrderFormScreen(
                                         .weight(0.8f)
                                         .padding(end = 4.dp),
                                     placeholder = "0",
-                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                                    // NumberPassword (not Number) — Number triggers the predictive-text suggestion
+                                    // strip on Samsung keyboards, which duplicates/garbles digits mid-type (e.g. "6"
+                                    // becomes "600"). NumberPassword keeps the numeric keypad but has no suggestions,
+                                    // and stays unmasked since no PasswordVisualTransformation is applied here.
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword, imeAction = ImeAction.Next)
                                 )
 
                                 Text(
@@ -337,7 +416,7 @@ fun OrderFormScreen(
                                     },
                                     modifier = Modifier.size(40.dp)
                                 ) {
-                                    Text("×", color = MtbWebColors.DeleteRed, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                                    Icon(Icons.Filled.Cancel, contentDescription = null, tint = MtbWebColors.DeleteRed, modifier = Modifier.size(22.dp))
                                 }
                             }
                         }
@@ -352,7 +431,7 @@ fun OrderFormScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(stringResource(R.string.common_total), Modifier.weight(3.4f), color = MtbWebColors.HeadingBrown, fontWeight = FontWeight.Bold, fontSize = MtbTextSizes.label)
-                        Text(String.format(Locale.US, "%.1f", totalQty), Modifier.weight(0.8f), color = MtbWebColors.HeadingBrown, fontWeight = FontWeight.Bold, fontSize = MtbTextSizes.label)
+                        Text(formatTotalQty(totalQty), Modifier.weight(0.8f), color = MtbWebColors.HeadingBrown, fontWeight = FontWeight.Bold, fontSize = MtbTextSizes.label)
                         Text(String.format(Locale.US, "%.2f kg", totalWeight), Modifier.weight(0.9f), color = MtbWebColors.HeadingBrown, fontWeight = FontWeight.Bold, fontSize = MtbTextSizes.label)
                         Spacer(Modifier.width(28.dp))
                     }
@@ -384,7 +463,7 @@ fun OrderFormScreen(
                                 val validRows = rows.filter { it.id.isNotBlank() && it.reference != notFoundLabel }
                                 if (validRows.isNotEmpty()) {
                                     isSaving = true
-                                    onSaveOrderClick(validRows, totalQty, totalWeight, selectedClient) { success, message ->
+                                    onSaveOrderClick(validRows, totalQty, totalWeight, selectedClient, orderNumber) { success, message ->
                                         isSaving = false
                                         if (!success) {
                                             showMessage(message)
@@ -404,7 +483,7 @@ fun OrderFormScreen(
 
                     MtbButton(
                         text = stringResource(R.string.order_export_pdf),
-                        onClick = { exportOrderToPdf(context, rows, totalQty, totalWeight, selectedClient, showMessage) },
+                        onClick = { exportOrderToPdf(context, rows, totalQty, totalWeight, selectedClient, showMessage, orderNumber = orderNumber) },
                         containerColor = MtbWebColors.PrimaryBrown,
                         modifier = Modifier.weight(1.2f),
                         height = 44.dp,
@@ -422,7 +501,9 @@ fun exportOrderToPdf(
     totalQty: Double,
     totalWeight: Double,
     clientName: String,
-    showMessage: (String) -> Unit = {}
+    showMessage: (String) -> Unit = {},
+    showChecklist: Boolean = false,
+    orderNumber: String = ""
 ) {
     try {
         val pdfDocument = PdfDocument()
@@ -440,6 +521,7 @@ fun exportOrderToPdf(
         val articleHeader = context.getString(R.string.common_article)
         val qtyHeader = context.getString(R.string.order_pdf_qty_header)
         val weightHeader = context.getString(R.string.order_pdf_weight_header)
+        val checkHeader = context.getString(R.string.order_pdf_check_header)
         val totalLabel = context.getString(R.string.common_total)
 
         var yPos = 40f
@@ -483,11 +565,14 @@ fun exportOrderToPdf(
             yPos += 40f
         }
 
-        // Print Client Name
+        // Print Client Name (and order number beside it, when provided)
         paint.color = primaryBrown
         paint.textSize = 12f
         paint.isFakeBoldText = true
         canvas.drawText(context.getString(R.string.order_pdf_client, clientName), 50f, yPos, paint)
+        if (orderNumber.isNotBlank()) {
+            canvas.drawText(context.getString(R.string.order_pdf_number, orderNumber), 300f, yPos, paint)
+        }
         yPos += 20f
 
         // Table Header
@@ -500,7 +585,7 @@ fun exportOrderToPdf(
         canvas.drawText(refHeader, 60f, yPos + 20f, paint)
         canvas.drawText(articleHeader, 160f, yPos + 20f, paint)
         canvas.drawText(qtyHeader, 380f, yPos + 20f, paint)
-        canvas.drawText(weightHeader, 460f, yPos + 20f, paint)
+        canvas.drawText(if (showChecklist) checkHeader else weightHeader, 460f, yPos + 20f, paint)
 
         yPos += 30f
 
@@ -525,8 +610,23 @@ fun exportOrderToPdf(
                 val qtyText = if (row.qty.isBlank()) "0" else row.qty
                 canvas.drawText(qtyText, 380f, yPos + 18f, paint)
 
-                val weightText = if (row.calculatedWeight.isBlank()) "0.00" else row.calculatedWeight
-                canvas.drawText(weightText, 460f, yPos + 18f, paint)
+                if (showChecklist) {
+                    val boxSize = 14f
+                    val boxLeft = 460f
+                    val boxTop = yPos + 7f
+                    paint.style = Paint.Style.STROKE
+                    paint.strokeWidth = 1.5f
+                    canvas.drawRect(boxLeft, boxTop, boxLeft + boxSize, boxTop + boxSize, paint)
+                    if (row.checked) {
+                        paint.strokeWidth = 2f
+                        canvas.drawLine(boxLeft + 2f, boxTop + 7f, boxLeft + 6f, boxTop + boxSize - 2f, paint)
+                        canvas.drawLine(boxLeft + 6f, boxTop + boxSize - 2f, boxLeft + boxSize - 2f, boxTop + 1f, paint)
+                    }
+                    paint.style = Paint.Style.FILL
+                } else {
+                    val weightText = if (row.calculatedWeight.isBlank()) "0.00" else row.calculatedWeight
+                    canvas.drawText(weightText, 460f, yPos + 18f, paint)
+                }
 
                 yPos += 28f
             }
@@ -541,7 +641,9 @@ fun exportOrderToPdf(
         paint.textSize = 13f
         canvas.drawText(totalLabel, 160f, yPos + 22f, paint)
         canvas.drawText(String.format(Locale.US, "%.1f", totalQty), 380f, yPos + 22f, paint)
-        canvas.drawText(String.format(Locale.US, "%.2f kg", totalWeight), 460f, yPos + 22f, paint)
+        if (!showChecklist) {
+            canvas.drawText(String.format(Locale.US, "%.2f kg", totalWeight), 460f, yPos + 22f, paint)
+        }
 
         pdfDocument.finishPage(page)
 
@@ -571,4 +673,9 @@ fun exportOrderToPdf(
         e.printStackTrace()
         showMessage(context.getString(R.string.order_pdf_failure, e.localizedMessage))
     }
+}
+// Totals read "17" rather than "17.0" for whole numbers, but keep decimals when there are some.
+private fun formatTotalQty(n: Double): String {
+    val rounded = Math.round(n * 100) / 100.0
+    return if (rounded % 1.0 == 0.0) rounded.toLong().toString() else rounded.toString()
 }

@@ -4,8 +4,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,6 +26,7 @@ import com.mtb.mtb.R
 import com.mtb.mtb.app.MtbSpacing
 import com.mtb.mtb.app.MtbTextSizes
 import com.mtb.mtb.app.MtbWebColors
+import com.mtb.mtb.ui.theme.NeumorphicCard
 
 /**
  * Blocking full-screen overlay shown whenever the device has no validated internet
@@ -48,13 +52,13 @@ fun NoNetworkScreen(onRetryClick: () -> Unit) {
                 .padding(MtbSpacing.lg),
             contentAlignment = Alignment.Center
         ) {
-            Card(
+            NeumorphicCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .widthIn(max = 400.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = MtbWebColors.CardWhite),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                shape = RoundedCornerShape(16.dp),
+                containerColor = MtbWebColors.CardWhite,
+                elevation = 4.dp
             ) {
                 Column(
                     modifier = Modifier
@@ -79,7 +83,7 @@ fun NoNetworkScreen(onRetryClick: () -> Unit) {
                             .background(MtbWebColors.ErrorBannerBg, RoundedCornerShape(32.dp)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("📡", fontSize = MtbTextSizes.heading)
+                        Icon(Icons.Filled.WifiOff, contentDescription = null, tint = MtbWebColors.DeleteRed, modifier = Modifier.size(32.dp))
                     }
 
                     Spacer(modifier = Modifier.height(MtbSpacing.md))

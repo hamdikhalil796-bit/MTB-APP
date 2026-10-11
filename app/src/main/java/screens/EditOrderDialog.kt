@@ -8,6 +8,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,6 +34,7 @@ import com.mtb.mtb.app.MtbWebColors
 import com.mtb.mtb.app.OrderRowItem
 import com.mtb.mtb.app.ProductItem
 import com.mtb.mtb.app.SavedOrder
+import com.mtb.mtb.ui.theme.NeumorphicCard
 import java.util.Locale
 
 /**
@@ -48,6 +52,10 @@ fun EditOrderDialog(
     var rows by remember(order.id) { mutableStateOf(order.items.ifEmpty { listOf(OrderRowItem()) }) }
     var clientExpanded by remember { mutableStateOf(false) }
     var selectedClient by remember(order.id) { mutableStateOf(order.client) }
+    // Starts blank rather than pre-filled from order.orderNumber — editing an order
+    // shouldn't surface whatever was typed in before as if it still applies; leaving
+    // this blank and saving clears the stored number, typing a new one replaces it.
+    var orderNumber by remember(order.id) { mutableStateOf("") }
     val clients = listOf("FILIN", "LCN")
     val notFoundLabel = stringResource(R.string.order_not_found)
 
@@ -81,10 +89,11 @@ fun EditOrderDialog(
     val totalWeight = rows.sumOf { it.calculatedWeight.toDoubleOrNull() ?: 0.0 }
 
     Dialog(onDismissRequest = onDismiss) {
-        Card(
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = MtbWebColors.CardWhite),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        AnimatedDialogSurface {
+        NeumorphicCard(
+            shape = RoundedCornerShape(16.dp),
+            containerColor = MtbWebColors.CardWhite,
+            elevation = 4.dp
         ) {
             Column(
                 modifier = Modifier
@@ -118,7 +127,7 @@ fun EditOrderDialog(
                             contentPadding = PaddingValues(horizontal = MtbSpacing.md, vertical = 0.dp)
                         ) {
                             Text(text = selectedClient, color = MtbWebColors.TextDark, fontSize = MtbTextSizes.label)
-                            Text(text = " ▼", fontSize = MtbTextSizes.caption, color = MtbWebColors.MutedText)
+                            Icon(Icons.Filled.ArrowDropDown, contentDescription = null, tint = MtbWebColors.MutedText)
                         }
                         DropdownMenu(
                             expanded = clientExpanded,
@@ -144,6 +153,15 @@ fun EditOrderDialog(
                             }
                         }
                     }
+                    Spacer(modifier = Modifier.width(MtbSpacing.md))
+                    CompactTextField(
+                        value = orderNumber,
+                        onValueChange = { orderNumber = it },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(40.dp),
+                        placeholder = stringResource(R.string.order_number_placeholder)
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -258,7 +276,11 @@ fun EditOrderDialog(
                                     .weight(0.8f)
                                     .padding(end = MtbSpacing.xs),
                                 placeholder = "0",
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                                // NumberPassword (not Number) — Number triggers the predictive-text suggestion
+                                // strip on Samsung keyboards, which duplicates/garbles digits mid-type (e.g. "6"
+                                // becomes "600"). NumberPassword keeps the numeric keypad but has no suggestions,
+                                // and stays unmasked since no PasswordVisualTransformation is applied here.
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword)
                             )
 
                             IconButton(
@@ -269,7 +291,7 @@ fun EditOrderDialog(
                                 },
                                 modifier = Modifier.size(40.dp)
                             ) {
-                                Text("×", color = MtbWebColors.DeleteRed, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                                Icon(Icons.Filled.Cancel, contentDescription = null, tint = MtbWebColors.DeleteRed, modifier = Modifier.size(20.dp))
                             }
                         }
                     }
@@ -328,6 +350,7 @@ fun EditOrderDialog(
                                 onConfirm(
                                     order.copy(
                                         client = selectedClient,
+                                        orderNumber = orderNumber,
                                         items = validRows,
                                         totalQty = validRows.sumOf { it.qty.toDoubleOrNull() ?: 0.0 },
                                         totalWeight = validRows.sumOf { it.calculatedWeight.toDoubleOrNull() ?: 0.0 }
@@ -340,6 +363,7 @@ fun EditOrderDialog(
                     )
                 }
             }
+        }
         }
     }
 }

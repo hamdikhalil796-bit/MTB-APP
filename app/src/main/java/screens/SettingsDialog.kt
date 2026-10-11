@@ -1,9 +1,8 @@
 package com.mtb.mtb.app.screens
 
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -16,24 +15,37 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.mtb.mtb.R
+import com.mtb.mtb.app.AppTheme
+import com.mtb.mtb.app.AppUpdateManager
 import com.mtb.mtb.app.LocaleHelper
 import com.mtb.mtb.app.MtbTextSizes
 import com.mtb.mtb.app.MtbWebColors
+import com.mtb.mtb.ui.theme.NeumorphicCard
 
 @Composable
 fun SettingsDialog(
-    isDarkMode: Boolean,
-    onToggleDarkMode: () -> Unit,
+    appTheme: AppTheme,
+    onThemeChanged: (AppTheme) -> Unit,
     onLanguageChanged: (String) -> Unit,
     onLogoutClick: () -> Unit,
+    // Shown only to profiles that get new-order notifications.
+    onTestNotificationClick: (() -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
     var currentLanguage by remember { mutableStateOf(LocaleHelper.currentLanguageCode(context)) }
+    val versionName = remember {
+        try {
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "?"
+        } catch (e: Exception) {
+            "?"
+        }
+    }
+    val versionCode = remember { AppUpdateManager.installedVersionCode(context) }
 
     fun selectLanguage(code: String) {
         currentLanguage = code
@@ -42,10 +54,11 @@ fun SettingsDialog(
     }
 
     Dialog(onDismissRequest = onDismiss) {
-        Card(
+        AnimatedDialogSurface {
+        NeumorphicCard(
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MtbWebColors.CardWhite),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            containerColor = MtbWebColors.CardWhite,
+            elevation = 4.dp
         ) {
             Column(
                 modifier = Modifier
@@ -62,18 +75,31 @@ fun SettingsDialog(
                 HorizontalDivider(color = MtbWebColors.BgBeige, thickness = 2.dp)
                 Spacer(modifier = Modifier.height(18.dp))
 
+                Text(
+                    text = stringResource(R.string.settings_theme),
+                    color = MtbWebColors.TextDark,
+                    fontSize = MtbTextSizes.subtitle,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(
-                        text = stringResource(R.string.settings_theme),
-                        color = MtbWebColors.TextDark,
-                        fontSize = MtbTextSizes.subtitle,
-                        fontWeight = FontWeight.SemiBold
+                    ThemeChip(
+                        label = stringResource(R.string.settings_theme_light),
+                        swatch = Color(0xFFF7F5F0),
+                        selected = appTheme == AppTheme.LIGHT,
+                        modifier = Modifier.weight(1f),
+                        onClick = { onThemeChanged(AppTheme.LIGHT) }
                     )
-                    AnimatedThemeToggle(isDark = isDarkMode, onToggle = onToggleDarkMode)
+                    ThemeChip(
+                        label = stringResource(R.string.settings_theme_dark),
+                        swatch = Color(0xFF1C1611),
+                        selected = appTheme == AppTheme.DARK,
+                        modifier = Modifier.weight(1f),
+                        onClick = { onThemeChanged(AppTheme.DARK) }
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(22.dp))
@@ -111,6 +137,15 @@ fun SettingsDialog(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                if (onTestNotificationClick != null) {
+                    MtbOutlinedButton(
+                        text = stringResource(R.string.settings_test_notification),
+                        onClick = onTestNotificationClick,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
+
                 MtbButton(
                     text = stringResource(R.string.settings_logout),
                     onClick = onLogoutClick,
@@ -126,7 +161,18 @@ fun SettingsDialog(
                 ) {
                     Text(stringResource(R.string.common_cancel), color = MtbWebColors.HeadingBrown)
                 }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = stringResource(R.string.settings_version, versionName, versionCode),
+                    color = MtbWebColors.MutedText,
+                    fontSize = MtbTextSizes.caption,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
             }
+        }
         }
     }
 }
@@ -155,34 +201,39 @@ private fun LanguageChip(
 }
 
 @Composable
-private fun AnimatedThemeToggle(isDark: Boolean, onToggle: () -> Unit) {
-    val trackColor by animateColorAsState(
-        targetValue = if (isDark) MtbWebColors.PrimaryBrown else MtbWebColors.BgBeige,
-        label = "trackColor"
+private fun ThemeChip(
+    label: String,
+    swatch: Color,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val bg by animateColorAsState(
+        targetValue = if (selected) MtbWebColors.BorderGray else MtbWebColors.BgBeige,
+        label = "themeChipBg"
     )
-    val thumbOffset by animateDpAsState(
-        targetValue = if (isDark) 24.dp else 0.dp,
-        label = "thumbOffset"
-    )
-
-    Box(
-        modifier = Modifier
-            .width(56.dp)
-            .height(32.dp)
-            .background(trackColor, RoundedCornerShape(16.dp))
-            .clickable { onToggle() }
-            .padding(4.dp)
+    Column(
+        modifier = modifier
+            .background(bg, RoundedCornerShape(10.dp))
+            .border(2.dp, if (selected) MtbWebColors.SecondaryBrown else Color.Transparent, RoundedCornerShape(10.dp))
+            .clickable { onClick() }
+            .padding(vertical = 10.dp, horizontal = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Box(
             modifier = Modifier
-                .offset(x = thumbOffset)
-                .size(24.dp)
-                .background(MtbWebColors.CardWhite, CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Crossfade(targetState = isDark, label = "themeIcon") { dark ->
-                Text(if (dark) "🌙" else "☀️", fontSize = 12.sp)
-            }
-        }
+                .size(28.dp)
+                .background(swatch, CircleShape)
+                .border(1.dp, MtbWebColors.BorderGray, CircleShape)
+        )
+        Text(
+            label,
+            color = MtbWebColors.HeadingBrown,
+            fontSize = MtbTextSizes.caption,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center,
+            maxLines = 1
+        )
     }
 }

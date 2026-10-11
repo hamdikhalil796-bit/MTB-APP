@@ -3,15 +3,21 @@
     <string name="msg_order_deleted">Ordine eliminato da Firebase</string>
     <string name="msg_order_id_missing">Errore: ID ordine non trovato</string>
     <string name="msg_order_updated">Ordine aggiornato su Firebase</string>
+    <string name="msg_order_finished">Ordine terminato</string>
     <string name="msg_product_deleted">Articolo eliminato da Firebase</string>
     <string name="msg_product_duplicate_id">Esiste già un articolo con questo ID.</string>
     <string name="msg_product_added">Articolo aggiunto con successo a Firebase!</string>
     <string name="msg_product_updated">Articolo aggiornato su Firebase</string>
+    <string name="msg_product_info_updated">Informazioni dell\'articolo aggiornate</string>
     <string name="msg_stock_nothing_to_save">Nessun articolo da salvare.</string>
     <string name="msg_stock_saved_with_errors">Magazzino salvato con errori.</string>
     <string name="msg_stock_updated">Magazzino aggiornato su Firebase!</string>
+    <string name="msg_maintenance_added">Intervento salvato!</string>
+    <string name="msg_maintenance_deleted">Intervento eliminato</string>
 
     <string name="notif_channel_new_orders">Nuovi ordini</string>
     <string name="notif_new_order_title">Nuovo ordine ricevuto</string>
     <string name="notif_new_order_body">È stato appena registrato un nuovo ordine.</string>
+    <string name="notif_new_orders_body">Sono stati registrati %1$d nuovi ordini.</string>
+    <string name="msg_notifications_blocked">Le notifiche di MTB sono bloccate. Consentile nelle impostazioni del telefono.</string>
 </resources>

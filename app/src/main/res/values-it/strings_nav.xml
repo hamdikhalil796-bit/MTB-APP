@@ -1,7 +1,10 @@
 <resources>
     <string name="nav_home">Home</string>
     <string name="nav_orders">Ordine</string>
+    <string name="nav_current_order">In corso</string>
     <string name="nav_history">Storico</string>
     <string name="nav_articles">Articoli</string>
+    <string name="nav_add_product">Aggiungi</string>
     <string name="nav_stock">Magazzino</string>
+    <string name="nav_maintenance">Manutenzione</string>
 </resources>

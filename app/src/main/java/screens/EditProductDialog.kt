@@ -25,20 +25,21 @@ import com.mtb.mtb.app.ImageUtils
 import com.mtb.mtb.app.MtbTextSizes
 import com.mtb.mtb.app.MtbWebColors
 import com.mtb.mtb.app.ProductItem
+import com.mtb.mtb.ui.theme.NeumorphicCard
 
 @Composable
 fun EditProductDialog(
     product: ProductItem,
     onDismiss: () -> Unit,
-    onConfirm: (reference: String, weight: String, photoUri: String?) -> Unit,
+    onConfirm: (id: String, reference: String, weight: String, photoUri: String?) -> Unit,
     showMessage: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
 
-    // L'ID ne doit pas être modifiable car c'est la clé du document Firebase
-    var reference by remember { mutableStateOf(product.reference) }
-    var weight by remember { mutableStateOf(product.weight.replace("-", "")) }
-    var imageBase64String by remember { mutableStateOf<String?>(product.photoUri) }
+    var id by remember(product.id) { mutableStateOf(product.id) }
+    var reference by remember(product.id, product.reference) { mutableStateOf(product.reference) }
+    var weight by remember(product.id, product.weight) { mutableStateOf(product.weight.replace("-", "")) }
+    var imageBase64String by remember(product.id, product.photoUri) { mutableStateOf<String?>(product.photoUri) }
     val decodeErrorMessage = stringResource(R.string.edit_product_photo_decode_error)
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -62,12 +63,13 @@ fun EditProductDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false) // Permet de mieux contrôler la largeur
     ) {
-        Card(
+        AnimatedDialogSurface {
+        NeumorphicCard(
             modifier = Modifier
                 .fillMaxWidth(0.9f) // Prend 90% de la largeur de l'écran (idéal pour le mode portrait)
                 .padding(16.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = MtbWebColors.CardWhite)
+            shape = RoundedCornerShape(16.dp),
+            containerColor = MtbWebColors.CardWhite
         ) {
             Column(
                 modifier = Modifier
@@ -92,14 +94,12 @@ fun EditProductDialog(
                     unfocusedBorderColor = MtbWebColors.BgBeige
                 )
 
-                // ID (Lecture seule)
+                // ID
                 Column {
-                    Text(stringResource(R.string.field_id_label), color = MtbWebColors.MutedText, fontSize = MtbTextSizes.label, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.field_id_label), color = MtbWebColors.HeadingBrown, fontSize = MtbTextSizes.label, fontWeight = FontWeight.Bold)
                     OutlinedTextField(
-                        value = product.id,
-                        onValueChange = {},
-                        readOnly = true,
-                        enabled = false,
+                        value = id,
+                        onValueChange = { id = it },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         colors = textFieldColors
@@ -173,8 +173,8 @@ fun EditProductDialog(
                     MtbButton(
                         text = stringResource(R.string.edit_product_update_button),
                         onClick = {
-                            if (reference.isNotBlank()) {
-                                onConfirm(reference.trim(), weight.trim(), imageBase64String)
+                            if (id.isNotBlank() && reference.isNotBlank()) {
+                                onConfirm(id.trim(), reference.trim(), weight.trim(), imageBase64String)
                             }
                         },
                         containerColor = MtbWebColors.SecondaryBrown,
@@ -182,6 +182,7 @@ fun EditProductDialog(
                     )
                 }
             }
+        }
         }
     }
 }

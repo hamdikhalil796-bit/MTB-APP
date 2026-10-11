@@ -1,6 +1,8 @@
 <resources>
     <string name="order_form_title">New Order</string>
     <string name="order_client_label">Client: </string>
+    <string name="order_number_placeholder">Order No. (optional)</string>
+    <string name="order_pdf_number">ORDER NO.: %1$s</string>
     <string name="order_not_found">Not found</string>
     <string name="order_validation_required">Please fill in at least one valid line.</string>
     <string name="order_export_pdf">Export PDF</string>
@@ -8,10 +10,13 @@
     <string name="order_pdf_client">CLIENT: %1$s</string>
     <string name="order_pdf_qty_header">QUANTITY</string>
     <string name="order_pdf_weight_header">WEIGHT // KG</string>
+    <string name="order_pdf_check_header">DONE</string>
     <string name="order_pdf_success">Success: PDF saved to Downloads!</string>
     <string name="order_pdf_failure">Failed to create PDF: %1$s</string>
     <string name="order_pdf_chooser_title">Open PDF with</string>
     <string name="order_pdf_open_error">PDF saved, but couldn\'t open it.</string>
     <string name="order_edit_title">Edit order</string>
     <string name="order_edit_number_date">No. %1$s — %2$s</string>
+    <string name="order_stock_hint">Stock: %1$s</string>
+    <string name="order_duplicate_line">Already on line %1$s</string>
 </resources>

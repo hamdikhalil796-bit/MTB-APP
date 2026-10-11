@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="stats_title">Statistiques</string>
+    <string name="stats_tab_clients">Par client</string>
+    <string name="stats_tab_articles">Top articles</string>
+    <string name="stats_search_clients">Rechercher un client...</string>
+    <string name="stats_empty">Aucune commande pour le moment, pas de statistiques à afficher.</string>
+    <string name="stats_no_match">Aucun résultat trouvé.</string>
+    <string name="stats_summary_orders">Commandes</string>
+    <string name="stats_summary_clients">Clients</string>
+    <string name="stats_summary_articles">Articles commandés</string>
+    <string name="stats_orders_count">Commandes : %1$s</string>
+    <string name="stats_articles_count">Articles : %1$s</string>
+    <string name="stats_unknown_client">(Sans nom de client)</string>
+</resources>
