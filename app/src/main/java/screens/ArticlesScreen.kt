@@ -1,19 +1,18 @@
 package com.mtb.mtb.app.screens
 
-import android.content.Context
-import android.content.Intent
-import android.util.Base64
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -21,29 +20,25 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.FileProvider
 import com.mtb.mtb.R
 import com.mtb.mtb.app.MtbSpacing
 import com.mtb.mtb.app.MtbTextSizes
 import com.mtb.mtb.app.MtbWebColors
 import com.mtb.mtb.app.ProductItem
-import com.mtb.mtb.app.UserRole
-import java.io.File
-import java.io.FileOutputStream
+import com.mtb.mtb.ui.theme.NeumorphicCard
 
 @Composable
 fun ArticlesScreen(
     products: List<ProductItem>,
-    userRole: UserRole,
+    canEdit: Boolean,
     onAddNewItemClick: () -> Unit,
     onDeleteClick: (String) -> Unit,
-    onViewPhotoClick: (String) -> Unit = {},
+    onViewInfoClick: (String) -> Unit = {},
     onEditClick: (String) -> Unit,
     showMessage: (String) -> Unit = {}
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var productPendingDelete by remember { mutableStateOf<ProductItem?>(null) }
-    val context = LocalContext.current
 
     val filteredProducts = products.filter { product ->
         product.id.contains(searchQuery, ignoreCase = true) ||
@@ -57,42 +52,48 @@ fun ArticlesScreen(
             .padding(4.dp),
         contentAlignment = Alignment.TopCenter
     ) {
-        Card(
+        NeumorphicCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .widthIn(max = 900.dp),
             shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = MtbWebColors.CardWhite),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            containerColor = MtbWebColors.CardWhite,
+            elevation = 2.dp
         ) {
             Column(modifier = Modifier.padding(8.dp)) {
 
-                Text(
-                    text = stringResource(R.string.articles_title),
-                    color = MtbWebColors.HeadingBrown,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = MtbTextSizes.title,
-                    modifier = Modifier.padding(bottom = 6.dp)
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 6.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.articles_title),
+                        color = MtbWebColors.HeadingBrown,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = MtbTextSizes.title
+                    )
+                    Text(
+                        text = stringResource(R.string.articles_count, products.size),
+                        color = MtbWebColors.HeadingBrown,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = MtbTextSizes.label,
+                        modifier = Modifier
+                            .background(MtbWebColors.IdBadgeBg, RoundedCornerShape(20.dp))
+                            .padding(horizontal = MtbSpacing.md, vertical = 4.dp)
+                    )
+                }
 
                 HorizontalDivider(color = MtbWebColors.BgBeige, thickness = 2.dp)
                 Spacer(modifier = Modifier.height(12.dp))
 
-                OutlinedTextField(
+                MtbTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 12.dp),
-                    placeholder = { Text(stringResource(R.string.articles_search_placeholder), fontSize = MtbTextSizes.label) },
-                    singleLine = true,
-                    textStyle = LocalTextStyle.current.copy(fontSize = MtbTextSizes.body),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = MtbWebColors.TextDark,
-                        unfocusedTextColor = MtbWebColors.TextDark,
-                        focusedBorderColor = MtbWebColors.PrimaryBrown,
-                        unfocusedBorderColor = MtbWebColors.BorderGray
-                    )
+                    modifier = Modifier.padding(bottom = 12.dp),
+                    placeholder = stringResource(R.string.articles_search_placeholder)
                 )
 
                 Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
@@ -107,9 +108,9 @@ fun ArticlesScreen(
                             Text(stringResource(R.string.common_ref), Modifier.weight(1.6f).padding(end = MtbSpacing.xs), color = Color.White, fontSize = MtbTextSizes.caption, fontWeight = FontWeight.SemiBold)
                             Text(stringResource(R.string.common_article), Modifier.weight(1.3f).padding(end = MtbSpacing.xs), color = Color.White, fontSize = MtbTextSizes.caption, fontWeight = FontWeight.SemiBold)
                             Text(stringResource(R.string.common_weight), Modifier.weight(0.7f).padding(end = MtbSpacing.xs), color = Color.White, fontSize = MtbTextSizes.caption, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text(stringResource(R.string.field_photo_label), Modifier.width(42.dp), color = Color.White, fontSize = MtbTextSizes.caption, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
+                            Text(stringResource(R.string.field_info_label), Modifier.width(42.dp), color = Color.White, fontSize = MtbTextSizes.caption, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
 
-                            if (userRole == UserRole.ADMIN) {
+                            if (canEdit) {
                                 Spacer(Modifier.width(60.dp))
                             } else {
                                 Spacer(Modifier.width(8.dp))
@@ -173,10 +174,7 @@ fun ArticlesScreen(
 
                                         Box(modifier = Modifier.width(42.dp), contentAlignment = Alignment.Center) {
                                             TextButton(
-                                                onClick = {
-                                                    openImageInGallery(context, product.photoUri, product.id, showMessage)
-                                                    onViewPhotoClick(product.id)
-                                                },
+                                                onClick = { onViewInfoClick(product.id) },
                                                 contentPadding = PaddingValues(0.dp),
                                                 modifier = Modifier.height(36.dp)
                                             ) {
@@ -184,13 +182,13 @@ fun ArticlesScreen(
                                             }
                                         }
 
-                                        if (userRole == UserRole.ADMIN) {
+                                        if (canEdit) {
                                             Box(modifier = Modifier.width(36.dp), contentAlignment = Alignment.Center) {
                                                 IconButton(
                                                     onClick = { onEditClick(product.id) },
                                                     modifier = Modifier.size(36.dp)
                                                 ) {
-                                                    Text("✎", color = MtbWebColors.HeadingBrown, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                                    Icon(Icons.Filled.Edit, contentDescription = null, tint = MtbWebColors.HeadingBrown, modifier = Modifier.size(18.dp))
                                                 }
                                             }
 
@@ -199,7 +197,7 @@ fun ArticlesScreen(
                                                     onClick = { productPendingDelete = product },
                                                     modifier = Modifier.size(36.dp)
                                                 ) {
-                                                    Text("×", color = MtbWebColors.DeleteRed, fontSize = 20.sp)
+                                                    Icon(Icons.Filled.Cancel, contentDescription = null, tint = MtbWebColors.DeleteRed, modifier = Modifier.size(20.dp))
                                                 }
                                             }
                                         } else {
@@ -212,7 +210,7 @@ fun ArticlesScreen(
                     }
                 }
 
-                if (userRole == UserRole.ADMIN) {
+                if (canEdit) {
                     Spacer(modifier = Modifier.height(16.dp))
 
                     MtbButton(
@@ -251,45 +249,5 @@ fun ArticlesScreen(
             },
             containerColor = MtbWebColors.CardWhite
         )
-    }
-}
-
-private fun openImageInGallery(
-    context: Context,
-    base64String: String?,
-    productId: String,
-    showMessage: (String) -> Unit
-) {
-    if (base64String.isNullOrBlank()) {
-        showMessage(context.getString(R.string.gallery_no_photo))
-        return
-    }
-
-    try {
-        val cleanBase64 = if (base64String.contains(",")) base64String.substringAfter(",") else base64String
-        val bytes = Base64.decode(cleanBase64, Base64.DEFAULT)
-
-        val cachePath = File(context.cacheDir, "images")
-        cachePath.mkdirs()
-        val file = File(cachePath, "image_$productId.jpg")
-
-        val fileOutputStream = FileOutputStream(file)
-        fileOutputStream.write(bytes)
-        fileOutputStream.flush()
-        fileOutputStream.close()
-
-        val authority = "${context.packageName}.fileprovider"
-        val uri = FileProvider.getUriForFile(context, authority, file)
-
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, "image/*")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-
-        context.startActivity(Intent.createChooser(intent, context.getString(R.string.gallery_chooser_title)))
-
-    } catch (e: Exception) {
-        e.printStackTrace()
-        showMessage(context.getString(R.string.gallery_error))
     }
 }

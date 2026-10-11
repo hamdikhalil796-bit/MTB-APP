@@ -1,11 +1,11 @@
 rules_version = '2';
 
-// No real Firebase Auth yet (see LoginScreen.kt) — reads, and who is allowed to write,
-// stay open here, matching today's access model. What's new is *shape* validation on
-// writes to orders/products, closing the "any write is trusted blindly" gap without
-// requiring auth. Note: per-element validation of the `items` list on an order isn't
-// expressible in rules (no loops over variable-length lists) — only presence/non-
-// emptiness of `items` is checked, not individual line values.
+// No Firebase Authentication: logins are checked by the website/app themselves against the
+// `profiles` collection (see ProfileRepository.kt / src/lib/profiles.ts), so the database can't
+// tell who is asking. Reads and writes stay open, matching that access model; what's enforced
+// here is the *shape* of every write, so a malformed document can't break the apps. Note: per-
+// element validation of the `items` list on an order isn't expressible in rules (no loops over
+// variable-length lists) — only presence/non-emptiness of `items` is checked.
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -21,6 +21,25 @@ service cloud.firestore {
       allow create, update: if isValidOrder(request.resource.data);
     }
 
+    match /maintenance/{entryId} {
+      allow read: if true;
+      allow delete: if true;
+      allow create, update: if isValidMaintenanceEntry(request.resource.data);
+    }
+
+    // Login profiles, keyed by username. Passwords are stored only as salted SHA-256 hashes.
+    match /profiles/{username} {
+      allow read: if true;
+      allow delete: if true;
+      allow create, update: if isValidProfile(username, request.resource.data);
+    }
+
+    // settings/guest (guest permissions) and settings/setup (first supervisor created).
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if docId in ['guest', 'setup'];
+    }
+
     // Published by hand via the Firebase Console each release (see AppUpdateManager.kt)
     // — read-only from the app; console/Admin SDK access bypasses rules entirely, so
     // this only blocks other clients from tampering with the update pointer.
@@ -28,18 +47,34 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
-  }
 
-  function isValidProduct(data) {
-    return data.id is string && data.id.size() > 0
-        && data.reference is string && data.reference.size() > 0
-        && data.weight is string;
-  }
+    function isValidProfile(username, data) {
+      return data.username == username
+          && username.matches('^[a-z0-9._-]{3,20}$')
+          && data.displayName is string
+          && data.isSupervisor is bool
+          && data.active is bool
+          && data.permissions is map
+          && data.salt is string && data.salt.size() > 0
+          && data.passwordHash is string && data.passwordHash.size() == 64;
+    }
 
-  function isValidOrder(data) {
-    return data.client is string && data.client.size() > 0
-        && data.totalQty is number && data.totalQty > 0
-        && data.totalWeight is number && data.totalWeight >= 0
-        && data.items is list && data.items.size() > 0;
+    function isValidProduct(data) {
+      return data.id is string && data.id.size() > 0
+          && data.reference is string && data.reference.size() > 0
+          && data.weight is string;
+    }
+
+    function isValidOrder(data) {
+      return data.client is string && data.client.size() > 0
+          && data.totalQty is number && data.totalQty > 0
+          && data.totalWeight is number && data.totalWeight >= 0
+          && data.items is list && data.items.size() > 0;
+    }
+
+    function isValidMaintenanceEntry(data) {
+      return data.title is string && data.title.size() > 0
+          && data.date is string;
+    }
   }
 }

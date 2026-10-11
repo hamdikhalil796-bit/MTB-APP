@@ -17,8 +17,8 @@ android {
         applicationId = "com.mtb.mtb"
         minSdk = 34
         targetSdk = 37
-        versionCode = 3
-        versionName = "2.1"
+        versionCode = 5
+        versionName = "2.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -43,6 +43,7 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
@@ -60,4 +61,6 @@ dependencies {
 
     // Add Firestore dependency
     implementation("com.google.firebase:firebase-firestore")
+    // Background check for new orders while the app is closed, see NewOrderCheckWorker.kt
+    implementation("androidx.work:work-runtime:2.12.0")
 }

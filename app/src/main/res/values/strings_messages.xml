@@ -3,15 +3,21 @@
     <string name="msg_order_deleted">Commande supprimée de Firebase</string>
     <string name="msg_order_id_missing">Erreur : ID de la commande introuvable</string>
     <string name="msg_order_updated">Commande mise à jour dans Firebase</string>
+    <string name="msg_order_finished">Commande terminée</string>
     <string name="msg_product_deleted">Article supprimé de Firebase</string>
     <string name="msg_product_duplicate_id">Un article avec cet ID existe déjà.</string>
     <string name="msg_product_added">Article ajouté avec succès dans Firebase !</string>
     <string name="msg_product_updated">Article mis à jour dans Firebase</string>
+    <string name="msg_product_info_updated">Informations de l\'article mises à jour</string>
     <string name="msg_stock_nothing_to_save">Aucun article à enregistrer.</string>
     <string name="msg_stock_saved_with_errors">Stock enregistré avec des erreurs.</string>
     <string name="msg_stock_updated">Stock mis à jour dans Firebase !</string>
+    <string name="msg_maintenance_added">Entretien enregistré !</string>
+    <string name="msg_maintenance_deleted">Entretien supprimé</string>
 
     <string name="notif_channel_new_orders">Nouvelles commandes</string>
     <string name="notif_new_order_title">Nouvelle commande reçue</string>
     <string name="notif_new_order_body">Une nouvelle commande vient d\'être enregistrée.</string>
+    <string name="notif_new_orders_body">%1$d nouvelles commandes ont été enregistrées.</string>
+    <string name="msg_notifications_blocked">Les notifications de MTB sont bloquées. Autorisez-les dans les réglages du téléphone.</string>
 </resources>

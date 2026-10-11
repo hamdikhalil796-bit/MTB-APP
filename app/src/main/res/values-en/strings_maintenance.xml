@@ -1,0 +1,15 @@
+<resources>
+    <string name="maintenance_title">Maintenance</string>
+    <string name="maintenance_search_placeholder">Search...</string>
+    <string name="maintenance_empty">No maintenance entries logged.</string>
+    <string name="maintenance_add_button">+ Add maintenance entry</string>
+    <string name="maintenance_delete_title">Delete this entry?</string>
+    <string name="maintenance_delete_confirm">Are you sure you want to delete \"%1$s\"? This action cannot be undone.</string>
+    <string name="maintenance_add_title">New maintenance entry</string>
+    <string name="maintenance_field_title">Title</string>
+    <string name="maintenance_field_title_placeholder">E.g. Blade change - Saw 1</string>
+    <string name="maintenance_field_date">Date</string>
+    <string name="maintenance_field_notes">Notes</string>
+    <string name="maintenance_field_notes_placeholder">Details, parts replaced, remarks...</string>
+    <string name="maintenance_title_required">Title is required.</string>
+</resources>

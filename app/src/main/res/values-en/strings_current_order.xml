@@ -1,0 +1,8 @@
+<resources>
+    <string name="current_order_title">Current orders</string>
+    <string name="current_order_empty">No current orders.</string>
+    <string name="current_order_finish_button">Finish order</string>
+    <string name="current_order_progress">%1$d/%2$d items ready</string>
+    <string name="current_order_mark_urgent">Mark as urgent</string>
+    <string name="current_order_unmark_urgent">Remove urgent</string>
+</resources>

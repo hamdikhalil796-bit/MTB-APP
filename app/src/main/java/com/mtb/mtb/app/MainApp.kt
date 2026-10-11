@@ -29,6 +29,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.messaging.FirebaseMessaging
 import com.mtb.mtb.R
 import com.mtb.mtb.app.screens.*
@@ -37,6 +39,11 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+// Saved login on this phone: "guest" or "profile:<username>" (see ProfileRepository).
+internal const val SESSION_PREF = "MTB_SESSION"
+internal const val SESSION_GUEST = "guest"
+internal const val SESSION_PROFILE_PREFIX = "profile:"
 
 @Composable
 fun MainApp(db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
@@ -55,16 +62,24 @@ fun MainApp(db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
     val msgOrderDeleted = stringResource(R.string.msg_order_deleted)
     val msgOrderIdMissing = stringResource(R.string.msg_order_id_missing)
     val msgOrderUpdated = stringResource(R.string.msg_order_updated)
+    val msgOrderFinished = stringResource(R.string.msg_order_finished)
     val msgProductDeleted = stringResource(R.string.msg_product_deleted)
     val msgProductDuplicateId = stringResource(R.string.msg_product_duplicate_id)
     val msgProductAdded = stringResource(R.string.msg_product_added)
     val msgProductUpdated = stringResource(R.string.msg_product_updated)
+    val duplicateIdTemplate = stringResource(R.string.edit_product_duplicate_id)
+    val msgProductInfoUpdated = stringResource(R.string.msg_product_info_updated)
     val msgStockNothingToSave = stringResource(R.string.msg_stock_nothing_to_save)
     val msgStockSavedWithErrors = stringResource(R.string.msg_stock_saved_with_errors)
     val msgStockUpdated = stringResource(R.string.msg_stock_updated)
+    val msgMaintenanceAdded = stringResource(R.string.msg_maintenance_added)
+    val msgMaintenanceDeleted = stringResource(R.string.msg_maintenance_deleted)
+    val msgProfileDisabled = stringResource(R.string.login_error_disabled)
+    val msgNotificationsBlocked = stringResource(R.string.msg_notifications_blocked)
+    val guestLabel = stringResource(R.string.role_guest)
 
     // 1. Initialize SharedPreferences
-    val sharedPreferences = context.getSharedPreferences("MTB_PREFS", Context.MODE_PRIVATE)
+    val sharedPreferences = context.getSharedPreferences(MTB_PREFS, Context.MODE_PRIVATE)
 
     // Force French on first launch (before any language preference is saved), regardless
     // of the device's system locale; afterwards respect whatever was explicitly chosen.
@@ -78,21 +93,66 @@ fun MainApp(db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
         }
     }
 
-    // Manual dark/light override — defaults to the system theme the first time, then persists.
+    // Manual theme override — defaults to the system light/dark theme the first time, then
+    // persists. Falls back to the legacy boolean DARK_MODE key so existing users' choice
+    // carries over instead of silently resetting to light after this update.
     val systemDark = isSystemInDarkTheme()
-    var isDarkMode by remember { mutableStateOf(sharedPreferences.getBoolean("DARK_MODE", systemDark)) }
+    var appTheme by remember {
+        mutableStateOf(
+            when (sharedPreferences.getString("APP_THEME", null)) {
+                AppTheme.LIGHT.name -> AppTheme.LIGHT
+                AppTheme.DARK.name -> AppTheme.DARK
+                else -> if (sharedPreferences.contains("DARK_MODE")) {
+                    if (sharedPreferences.getBoolean("DARK_MODE", systemDark)) AppTheme.DARK else AppTheme.LIGHT
+                } else if (systemDark) AppTheme.DARK else AppTheme.LIGHT
+            }
+        )
+    }
     var showSettings by remember { mutableStateOf(false) }
 
-    // 2. Read saved role on startup
-    val savedRoleName = sharedPreferences.getString("USER_ROLE", null)
+    // The pre-profiles login stored just "ADMIN"/"GUEST" here; it grants nothing anymore.
+    LaunchedEffect(Unit) { sharedPreferences.edit().remove("USER_ROLE").apply() }
 
-    // 3. Determine initial state based on saved data
-    val initialScreen = if (savedRoleName != null) "HOME" else "LOGIN"
-    val initialRole = when (savedRoleName) {
-        UserRole.ADMIN.name -> UserRole.ADMIN
-        UserRole.GUEST.name -> UserRole.GUEST
-        else -> UserRole.GUEST
+    // --- Login session: who is logged in on this phone + their profile (or guest permissions) --
+    var sessionKey by remember { mutableStateOf(sharedPreferences.getString(SESSION_PREF, null)) }
+    fun setSessionKey(key: String?) {
+        sharedPreferences.edit().apply {
+            if (key == null) remove(SESSION_PREF) else putString(SESSION_PREF, key)
+        }.apply()
+        sessionKey = key
     }
+
+    var session by remember { mutableStateOf<Session?>(null) }
+    // False while the profile/guest permissions for the saved login are still loading.
+    var sessionResolved by remember { mutableStateOf(false) }
+    var sessionEndedMessage by remember { mutableStateOf<String?>(null) }
+
+    DisposableEffect(sessionKey) {
+        val key = sessionKey
+        session = null
+        sessionResolved = key == null
+        if (key == null) return@DisposableEffect onDispose { }
+        val registration = if (key == SESSION_GUEST) {
+            ProfileRepository.listenGuestPermissions { perms ->
+                session = Session(profile = null, guestPermissions = perms)
+                sessionResolved = true
+            }
+        } else {
+            ProfileRepository.listenProfile(key.removePrefix(SESSION_PROFILE_PREFIX)) { profile ->
+                if (profile == null || !profile.active) {
+                    // Disabled or deleted by a supervisor: end the session right away.
+                    sessionEndedMessage = msgProfileDisabled
+                    setSessionKey(null)
+                } else {
+                    session = Session(profile = profile, guestPermissions = Permissions())
+                    sessionResolved = true
+                }
+            }
+        }
+        onDispose { registration.remove() }
+    }
+    val permissions = session?.permissions ?: Permissions()
+    val isSupervisor = session?.isSupervisor == true
 
     // Navigation back-stack: last entry is the visible screen. Hardware/gesture back
     // pops one level instead of exiting the app (only exits once back on "HOME"/"LOGIN").
@@ -122,16 +182,53 @@ fun MainApp(db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
         screenStack = screenStack.dropLast(1)
     }
 
-    var currentUserRole by remember { mutableStateOf(initialRole) }
+    var splashDone by remember { mutableStateOf(false) }
 
-    // Push notifications for new orders: only admins are subscribed to the topic the
+    // Moves between LOGIN and the app whenever a session starts or ends (login, logout, or a
+    // supervisor disabling the profile).
+    LaunchedEffect(splashDone, sessionResolved, session != null) {
+        if (!splashDone || !sessionResolved) return@LaunchedEffect
+        if (session != null) {
+            if (screenStack.last() == "LOGIN" || screenStack.last() == "SPLASH") {
+                screenStack = listOf(if (session?.isSupervisor == true) "SUPERVISOR" else "HOME")
+            }
+        } else if (screenStack.last() != "LOGIN") {
+            screenStack = listOf("LOGIN")
+        }
+    }
+
+    // Supervisor accounts only manage profiles: the profiles screen is all they get.
+    fun isScreenAllowed(screen: String): Boolean = if (isSupervisor) screen == "SUPERVISOR" else when (screen) {
+        "NEW_ORDER" -> permissions.newOrder
+        "CURRENT_ORDER" -> permissions.currentOrder
+        "HISTORY" -> permissions.history
+        "ARTICLES" -> permissions.articles
+        "ADD_PRODUCT" -> permissions.editArticles
+        "STOCK" -> permissions.stock
+        "MAINTENANCE" -> permissions.maintenance
+        "STATISTICS" -> permissions.statistics
+        "SUPERVISOR" -> false
+        else -> true
+    }
+
+    // Permissions can change live (a supervisor edits the profile): leave a screen as soon as
+    // it's no longer allowed.
+    LaunchedEffect(permissions, isSupervisor, currentScreen) {
+        if (session != null && !isScreenAllowed(currentScreen)) {
+            screenStack = listOf(if (isSupervisor) "SUPERVISOR" else "HOME")
+        }
+    }
+
+    // Push notifications for new orders go to profiles that prepare orders, via the topic the
     // "notifyAdminsOnNewOrder" Cloud Function publishes to (see OrderNotificationService).
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { /* no-op: if denied, the admin simply won't see the system notification */ }
+    ) { /* no-op: if denied, the profile simply won't see the system notification */ }
 
-    LaunchedEffect(currentUserRole) {
-        if (currentUserRole == UserRole.ADMIN) {
+    val wantsOrderNotifications = session?.isGuest == false && permissions.prepareOrders
+    LaunchedEffect(wantsOrderNotifications) {
+        if (wantsOrderNotifications) {
+            NewOrderNotifier.scheduleBackgroundCheck(context)
             FirebaseMessaging.getInstance().subscribeToTopic(NEW_ORDER_TOPIC)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                 ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
@@ -139,15 +236,25 @@ fun MainApp(db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
                 notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         } else {
+            NewOrderNotifier.cancelBackgroundCheck(context)
             FirebaseMessaging.getInstance().unsubscribeFromTopic(NEW_ORDER_TOPIC)
         }
     }
+    // Read inside the long-lived orders listener below, which would otherwise keep the value
+    // from when it was attached.
+    val notifyNewOrders by rememberUpdatedState(wantsOrderNotifications)
 
     var products by remember { mutableStateOf(listOf<ProductItem>()) }
     var orders by remember { mutableStateOf(listOf<SavedOrder>()) }
+    var maintenanceEntries by remember { mutableStateOf(listOf<MaintenanceEntry>()) }
+    val currentOrders = orders.filter { it.status == OrderStatus.CURRENT }
+    val completedOrders = orders.filter { it.status == OrderStatus.COMPLETED }
 
     var editingProductId by remember { mutableStateOf<String?>(null) }
     val productToEdit = products.find { it.id == editingProductId }
+
+    var infoProductId by remember { mutableStateOf<String?>(null) }
+    val productForInfo = products.find { it.id == infoProductId }
 
     // New state to handle order editing safely
     var editingOrder by remember { mutableStateOf<SavedOrder?>(null) }
@@ -159,9 +266,17 @@ fun MainApp(db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
         }
     }
 
-    LaunchedEffect(Unit) {
+    DisposableEffect(sessionKey) {
+        if (sessionKey == null) {
+            products = emptyList()
+            orders = emptyList()
+            maintenanceEntries = emptyList()
+            return@DisposableEffect onDispose { }
+        }
+        val registrations = mutableListOf<ListenerRegistration>()
+
         // Fetch products from Firebase in real-time
-        db.collection("products").addSnapshotListener { snapshot, error ->
+        registrations += db.collection("products").addSnapshotListener { snapshot, error ->
             if (error != null || snapshot == null) return@addSnapshotListener
 
             products = snapshot.documents.mapNotNull { document ->
@@ -170,8 +285,19 @@ fun MainApp(db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
         }
 
         // Fetch orders from Firebase in real-time
-        db.collection("orders").addSnapshotListener { snapshot, error ->
+        registrations += db.collection("orders").addSnapshotListener { snapshot, error ->
             if (error != null || snapshot == null) return@addSnapshotListener
+
+            // Always record what's been seen (so getting the permission later doesn't replay
+            // old orders); only notify profiles that prepare orders.
+            if (!snapshot.metadata.isFromCache) {
+                val currentIds = snapshot.documents
+                    .filter { it.getString("status") == OrderStatus.CURRENT }
+                    .map { it.id }
+                    .toSet()
+                val newCount = NewOrderNotifier.recordCurrentOrders(context, currentIds)
+                if (notifyNewOrders) NewOrderNotifier.show(context, newCount)
+            }
 
             orders = snapshot.documents.mapNotNull { doc ->
                 val order = doc.toObject(SavedOrder::class.java)
@@ -179,9 +305,21 @@ fun MainApp(db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
                 order?.copy(id = if (order.id.isNotBlank()) order.id else doc.id)
             }
         }
+
+        // Fetch maintenance log entries from Firebase in real-time
+        registrations += db.collection("maintenance").addSnapshotListener { snapshot, error ->
+            if (error != null || snapshot == null) return@addSnapshotListener
+
+            maintenanceEntries = snapshot.documents.mapNotNull { doc ->
+                val entry = doc.toObject(MaintenanceEntry::class.java)
+                entry?.copy(id = if (entry.id.isNotBlank()) entry.id else doc.id)
+            }
+        }
+
+        onDispose { registrations.forEach { it.remove() } }
     }
 
-    MTBTheme(darkTheme = isDarkMode) {
+    MTBTheme(appTheme = appTheme) {
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -190,10 +328,10 @@ fun MainApp(db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
             containerColor = androidx.compose.ui.graphics.Color.Transparent,
             snackbarHost = { SnackbarHost(snackbarHostState) },
             bottomBar = {
-                if (currentScreen != "LOGIN" && currentScreen != "SPLASH") {
+                if (currentScreen != "LOGIN" && currentScreen != "SPLASH" && !isSupervisor) {
                     MtbBottomNavigationBar(
                         currentScreen = currentScreen,
-                        userRole = currentUserRole,
+                        permissions = permissions,
                         onNavigate = { screen -> navigateToTab(screen) }
                     )
                 }
@@ -211,27 +349,52 @@ fun MainApp(db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
             ) { screen ->
             when (screen) {
                 "SPLASH" -> {
-                    SplashScreen(onFinished = { screenStack = listOf(initialScreen) })
+                    SplashScreen(onFinished = { splashDone = true })
                 }
 
                 "LOGIN" -> {
+                    // null = still checking whether a supervisor exists yet (first setup).
+                    var setupRequired by remember { mutableStateOf<Boolean?>(null) }
+                    LaunchedEffect(Unit) {
+                        ProfileRepository.checkFirstSetupDone { done -> setupRequired = !done }
+                    }
+                    // Success needs no handling here: the session effect above leaves LOGIN.
                     LoginScreen(
-                        onLoginSuccess = { role ->
-                            sharedPreferences.edit().putString("USER_ROLE", role.name).apply()
-                            currentUserRole = role
-                            screenStack = listOf("HOME")
+                        setupRequired = setupRequired,
+                        sessionEndedMessage = sessionEndedMessage,
+                        onLogin = { username, password, onError ->
+                            sessionEndedMessage = null
+                            ProfileRepository.checkLogin(username, password) { profile, e ->
+                                if (profile != null) setSessionKey(SESSION_PROFILE_PREFIX + profile.username)
+                                else onError(e ?: ProfileError.OTHER)
+                            }
+                        },
+                        onGuest = { _ ->
+                            sessionEndedMessage = null
+                            setSessionKey(SESSION_GUEST)
+                        },
+                        onFirstSetup = { name, username, password, onError ->
+                            sessionEndedMessage = null
+                            ProfileRepository.createFirstSupervisor(name, username, password) { e ->
+                                if (e != null) onError(e)
+                                else setSessionKey(SESSION_PROFILE_PREFIX + ProfileRepository.normalizeUsername(username))
+                            }
                         }
                     )
                 }
 
                 "HOME" -> {
                     HomeScreen(
-                        userRole = currentUserRole,
+                        permissions = permissions,
+                        welcomeName = session?.profile?.let { it.displayName.ifBlank { it.username } } ?: guestLabel,
                         onNewOrderClick = { navigateTo("NEW_ORDER") },
+                        onViewCurrentOrderClick = { navigateTo("CURRENT_ORDER") },
                         onViewHistoryClick = { navigateTo("HISTORY") },
                         onViewArticlesClick = { navigateTo("ARTICLES") },
                         onAddProductClick = { navigateTo("ADD_PRODUCT") },
                         onViewStockClick = { navigateTo("STOCK") },
+                        onViewMaintenanceClick = { navigateTo("MAINTENANCE") },
+                        onViewStatisticsClick = { navigateTo("STATISTICS") },
                         onSettingsClick = { showSettings = true }
                     )
                 }
@@ -239,24 +402,27 @@ fun MainApp(db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
                 "NEW_ORDER" -> {
                     OrderFormScreen(
                         products = products,
-                        onSaveOrderClick = { rows, totalQty, totalWeight, client, onComplete ->
+                        onSaveOrderClick = { rows, totalQty, totalWeight, client, orderNumber, onComplete ->
                             val currentDate = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
                             val orderId = "CMD_${System.currentTimeMillis()}"
                             val newOrder = SavedOrder(
                                 id = orderId,
                                 client = client,
+                                orderNumber = orderNumber,
                                 date = currentDate,
                                 totalQty = totalQty,
                                 totalWeight = totalWeight,
                                 items = rows,
-                                timestamp = System.currentTimeMillis()
+                                timestamp = System.currentTimeMillis(),
+                                status = OrderStatus.CURRENT
                             )
+                            NewOrderNotifier.markOwnOrder(context, orderId)
 
                             db.collection("orders").document(orderId)
                                 .set(newOrder)
                                 .addOnSuccessListener {
                                     showMessage(msgOrderSaved)
-                                    replaceTop("HISTORY")
+                                    replaceTop("CURRENT_ORDER")
                                     onComplete(true, "")
                                 }
                                 .addOnFailureListener { e ->
@@ -271,8 +437,8 @@ fun MainApp(db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
 
                 "HISTORY" -> {
                     OrdersHistoryScreen(
-                        orders = orders,
-                        userRole = currentUserRole,
+                        orders = completedOrders,
+                        canEditOrders = permissions.editOrders,
                         onDeleteOrderClick = { orderId ->
                             // Safe check to prevent IllegalArgumentException crash
                             if (orderId.isNotBlank()) {
@@ -295,10 +461,82 @@ fun MainApp(db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
                     )
                 }
 
+                "CURRENT_ORDER" -> {
+                    CurrentOrderScreen(
+                        orders = currentOrders,
+                        products = products,
+                        permissions = permissions,
+                        onDeleteOrderClick = { orderId ->
+                            if (orderId.isNotBlank()) {
+                                db.collection("orders").document(orderId).delete()
+                                    .addOnSuccessListener {
+                                        showMessage(msgOrderDeleted)
+                                    }
+                                    .addOnFailureListener { e ->
+                                        showMessage(String.format(errorTemplate, e.message))
+                                    }
+                            } else {
+                                showMessage(msgOrderIdMissing)
+                            }
+                        },
+                        onEditOrderClick = { order ->
+                            editingOrder = order
+                        },
+                        onFinishOrderClick = { order ->
+                            db.collection("orders").document(order.id)
+                                .update("status", OrderStatus.COMPLETED)
+                                .addOnSuccessListener {
+                                    showMessage(msgOrderFinished)
+                                }
+                                .addOnFailureListener { e ->
+                                    showMessage(String.format(errorTemplate, e.message))
+                                }
+                        },
+                        onToggleItemChecked = { order, itemIndex, checked ->
+                            if (itemIndex in order.items.indices) {
+                                val updatedItems = order.items.toMutableList().apply {
+                                    set(itemIndex, this[itemIndex].copy(checked = checked))
+                                }
+                                db.collection("orders").document(order.id)
+                                    .update("items", updatedItems)
+                                    .addOnFailureListener { e ->
+                                        showMessage(String.format(errorTemplate, e.message))
+                                    }
+                            }
+                        },
+                        onToggleItemUrgent = { order, itemIndex, urgent ->
+                            if (itemIndex in order.items.indices) {
+                                val updatedItems = order.items.toMutableList().apply {
+                                    set(itemIndex, this[itemIndex].copy(urgent = urgent))
+                                }
+                                db.collection("orders").document(order.id)
+                                    .update("items", updatedItems)
+                                    .addOnFailureListener { e ->
+                                        showMessage(String.format(errorTemplate, e.message))
+                                    }
+                            }
+                        },
+                        onUpdateReadyQty = { order, itemIndex, readyQty ->
+                            if (itemIndex in order.items.indices) {
+                                val updatedItems = order.items.toMutableList().apply {
+                                    set(itemIndex, this[itemIndex].copy(readyQty = readyQty))
+                                }
+                                db.collection("orders").document(order.id)
+                                    .update("items", updatedItems)
+                                    .addOnFailureListener { e ->
+                                        showMessage(String.format(errorTemplate, e.message))
+                                    }
+                            }
+                        },
+                        onViewArticleInfoClick = { productId -> infoProductId = productId },
+                        showMessage = showMessage
+                    )
+                }
+
                 "ARTICLES" -> {
                     ArticlesScreen(
                         products = products,
-                        userRole = currentUserRole,
+                        canEdit = permissions.editArticles,
                         onAddNewItemClick = { navigateTo("ADD_PRODUCT") },
                         onDeleteClick = { productId ->
                             if (productId.isNotBlank()) {
@@ -308,7 +546,7 @@ fun MainApp(db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
                                     }
                             }
                         },
-                        onViewPhotoClick = { productId -> },
+                        onViewInfoClick = { productId -> infoProductId = productId },
                         onEditClick = { productId ->
                             editingProductId = productId
                         },
@@ -372,7 +610,56 @@ fun MainApp(db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
                                 .addOnSuccessListener {
                                     showMessage(msgStockUpdated)
                                 }
-                        }
+                        },
+                        canEdit = permissions.editStock
+                    )
+                }
+
+                "STATISTICS" -> {
+                    StatisticsScreen(orders = orders)
+                }
+
+                "SUPERVISOR" -> {
+                    SupervisorScreen(
+                        currentUsername = session?.profile?.username,
+                        showMessage = showMessage,
+                        onSettingsClick = { showSettings = true }
+                    )
+                }
+
+                "MAINTENANCE" -> {
+                    MaintenanceScreen(
+                        entries = maintenanceEntries,
+                        onAddEntryClick = { title, date, notes ->
+                            val entryId = "MAINT_${System.currentTimeMillis()}"
+                            val newEntry = MaintenanceEntry(
+                                id = entryId,
+                                title = title,
+                                date = date,
+                                notes = notes,
+                                timestamp = System.currentTimeMillis()
+                            )
+                            db.collection("maintenance").document(entryId)
+                                .set(newEntry)
+                                .addOnSuccessListener {
+                                    showMessage(msgMaintenanceAdded)
+                                }
+                                .addOnFailureListener { e ->
+                                    showMessage(String.format(errorTemplate, e.message))
+                                }
+                        },
+                        onDeleteEntryClick = { entryId ->
+                            if (entryId.isNotBlank()) {
+                                db.collection("maintenance").document(entryId).delete()
+                                    .addOnSuccessListener {
+                                        showMessage(msgMaintenanceDeleted)
+                                    }
+                                    .addOnFailureListener { e ->
+                                        showMessage(String.format(errorTemplate, e.message))
+                                    }
+                            }
+                        },
+                        canEdit = permissions.editMaintenance
                     )
                 }
             }
@@ -383,18 +670,80 @@ fun MainApp(db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
                 EditProductDialog(
                     product = productToEdit,
                     onDismiss = { editingProductId = null },
-                    onConfirm = { newReference, newWeight, newPhotoUri ->
+                    onConfirm = { newId, newReference, newWeight, newPhotoUri ->
+                        if (newId == productToEdit.id) {
+                            val updatedMap = mapOf(
+                                "reference" to newReference,
+                                "weight" to newWeight,
+                                "photoUri" to newPhotoUri
+                            )
+                            db.collection("products").document(productToEdit.id)
+                                .update(updatedMap)
+                                .addOnSuccessListener {
+                                    showMessage(msgProductUpdated)
+                                }
+                            editingProductId = null
+                        } else {
+                            // Firestore document IDs are immutable, so renaming moves the
+                            // data to a new document and drops the old one. The transaction
+                            // keeps the duplicate-ID check and the move atomic.
+                            val oldRef = db.collection("products").document(productToEdit.id)
+                            val newRef = db.collection("products").document(newId)
+                            db.runTransaction { tx ->
+                                val newSnap = tx.get(newRef)
+                                if (newSnap.exists()) {
+                                    throw FirebaseFirestoreException(
+                                        "duplicate product id",
+                                        FirebaseFirestoreException.Code.ALREADY_EXISTS
+                                    )
+                                }
+                                val oldSnap = tx.get(oldRef)
+                                val oldProduct = oldSnap.toObject(ProductItem::class.java) ?: ProductItem()
+                                val newProduct = oldProduct.copy(
+                                    id = newId,
+                                    reference = newReference,
+                                    weight = newWeight,
+                                    photoUri = newPhotoUri
+                                )
+                                tx.set(newRef, newProduct)
+                                tx.delete(oldRef)
+                            }.addOnSuccessListener {
+                                showMessage(msgProductUpdated)
+                                editingProductId = null
+                            }.addOnFailureListener { e ->
+                                if (e is FirebaseFirestoreException && e.code == FirebaseFirestoreException.Code.ALREADY_EXISTS) {
+                                    showMessage(String.format(duplicateIdTemplate, newId))
+                                } else {
+                                    showMessage(String.format(errorTemplate, e.message))
+                                    editingProductId = null
+                                }
+                            }
+                        }
+                    },
+                    showMessage = showMessage
+                )
+            }
+
+            // Article Info Dialog (photo + notes, opened from ArticlesScreen's "Voir")
+            if (productForInfo != null) {
+                ArticleInfoDialog(
+                    product = productForInfo,
+                    canEdit = permissions.editArticles,
+                    onDismiss = { infoProductId = null },
+                    onSave = { newPhotoUri, newNotes ->
                         val updatedMap = mapOf(
-                            "reference" to newReference,
-                            "weight" to newWeight,
-                            "photoUri" to newPhotoUri
+                            "photoUri" to newPhotoUri,
+                            "notes" to newNotes
                         )
-                        db.collection("products").document(productToEdit.id)
+                        db.collection("products").document(productForInfo.id)
                             .update(updatedMap)
                             .addOnSuccessListener {
-                                showMessage(msgProductUpdated)
+                                showMessage(msgProductInfoUpdated)
                             }
-                        editingProductId = null
+                            .addOnFailureListener { e ->
+                                showMessage(String.format(errorTemplate, e.message))
+                            }
+                        infoProductId = null
                     },
                     showMessage = showMessage
                 )
@@ -423,18 +772,27 @@ fun MainApp(db: FirebaseFirestore = FirebaseFirestore.getInstance()) {
             // Settings Dialog
             if (showSettings) {
                 SettingsDialog(
-                    isDarkMode = isDarkMode,
-                    onToggleDarkMode = {
-                        isDarkMode = !isDarkMode
-                        sharedPreferences.edit().putBoolean("DARK_MODE", isDarkMode).apply()
+                    appTheme = appTheme,
+                    onThemeChanged = { newTheme ->
+                        appTheme = newTheme
+                        sharedPreferences.edit().putString("APP_THEME", newTheme.name).apply()
                     },
                     onLanguageChanged = { code ->
                         sharedPreferences.edit().putString("APP_LANGUAGE", code).apply()
                     },
+                    onTestNotificationClick = if (wantsOrderNotifications) {
+                        {
+                            if (NewOrderNotifier.canNotify(context)) {
+                                NewOrderNotifier.show(context, 1)
+                            } else {
+                                showMessage(msgNotificationsBlocked)
+                                NewOrderNotifier.openNotificationSettings(context)
+                            }
+                        }
+                    } else null,
                     onLogoutClick = {
-                        sharedPreferences.edit().remove("USER_ROLE").apply()
-                        currentUserRole = UserRole.GUEST
-                        screenStack = listOf("LOGIN")
+                        // The session effect sends the app back to LOGIN.
+                        setSessionKey(null)
                         showSettings = false
                     },
                     onDismiss = { showSettings = false }

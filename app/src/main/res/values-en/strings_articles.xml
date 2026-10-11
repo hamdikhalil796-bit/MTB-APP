@@ -1,20 +1,28 @@
 <resources>
     <!-- ArticlesScreen -->
     <string name="articles_title">Article List</string>
+    <string name="articles_count">%1$d articles</string>
     <string name="articles_search_placeholder">Search by ID or article...</string>
     <string name="articles_empty">No matching article found.</string>
     <string name="articles_view_photo">View</string>
     <string name="articles_add_button">+ Add article</string>
     <string name="articles_delete_title">Delete this article?</string>
     <string name="articles_delete_confirm">Are you sure you want to delete \"%1$s\" (%2$s)? This action cannot be undone.</string>
-    <string name="gallery_no_photo">No photo saved for this article.</string>
-    <string name="gallery_chooser_title">Open image with</string>
-    <string name="gallery_error">Error opening the image.</string>
+
+    <!-- ArticleInfoDialog (photo + notes popup opened from "View") -->
+    <string name="article_info_title">Article Information</string>
+    <string name="article_info_no_photo">No photo</string>
+    <string name="article_info_photo_import">Add a photo</string>
+    <string name="article_info_photo_change">Change photo</string>
+    <string name="article_info_notes_label">Notes</string>
+    <string name="article_info_notes_placeholder">Add notes or information about this article...</string>
+    <string name="article_info_save_button">Save</string>
 
     <!-- Shared between AddProductScreen + EditProductDialog -->
     <string name="field_id_label">REF Code / ID</string>
     <string name="field_description_label">ARTICLE (Description)</string>
     <string name="field_photo_label">PHOTO</string>
+    <string name="field_info_label">Info</string>
 
     <!-- AddProductScreen -->
     <string name="add_product_view_all">View all articles →</string>
@@ -35,5 +43,6 @@
     <string name="edit_product_photo_attached">Photo attached</string>
     <string name="edit_product_photo_none">No photo</string>
     <string name="edit_product_photo_decode_error">Couldn\'t process this image. The previous photo was kept.</string>
+    <string name="edit_product_duplicate_id">REF "%1$s" is already used by another article. Choose a different REF.</string>
     <string name="edit_product_update_button">Update</string>
 </resources>

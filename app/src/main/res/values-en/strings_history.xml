@@ -4,6 +4,7 @@
     <string name="history_search_placeholder">Search by client, date or ID...</string>
     <string name="history_empty">No orders found.</string>
     <string name="history_client_label">Client: %1$s</string>
+    <string name="history_order_number_label">No. %1$s</string>
     <string name="history_date_label">Date: %1$s</string>
     <string name="history_summary">%1$s articles | %2$s kg</string>
     <string name="history_details_label">Article details:</string>

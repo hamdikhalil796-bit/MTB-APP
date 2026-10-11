@@ -3,6 +3,7 @@
 
     <!-- Shared strings reused across multiple screens -->
     <string name="common_cancel">Annulla</string>
+    <string name="common_save">Salva</string>
     <string name="common_back">← Indietro</string>
     <string name="common_back_home">← Home</string>
     <string name="common_add_line">+ Riga</string>

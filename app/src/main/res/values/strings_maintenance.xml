@@ -1,0 +1,15 @@
+<resources>
+    <string name="maintenance_title">Entretien</string>
+    <string name="maintenance_search_placeholder">Rechercher...</string>
+    <string name="maintenance_empty">Aucun entretien enregistré.</string>
+    <string name="maintenance_add_button">+ Ajouter un entretien</string>
+    <string name="maintenance_delete_title">Supprimer cet entretien ?</string>
+    <string name="maintenance_delete_confirm">Voulez-vous vraiment supprimer \"%1$s\" ? Cette action est irréversible.</string>
+    <string name="maintenance_add_title">Nouvel entretien</string>
+    <string name="maintenance_field_title">Titre</string>
+    <string name="maintenance_field_title_placeholder">Ex : Changement de lame - Scie 1</string>
+    <string name="maintenance_field_date">Date</string>
+    <string name="maintenance_field_notes">Notes</string>
+    <string name="maintenance_field_notes_placeholder">Détails, pièces changées, remarques...</string>
+    <string name="maintenance_title_required">Le titre est obligatoire.</string>
+</resources>

@@ -3,8 +3,11 @@
     <string name="role_admin">Admin</string>
     <string name="role_guest">Invité</string>
     <string name="home_tile_order">Commande</string>
+    <string name="home_tile_current_order">Commande en cours</string>
     <string name="home_tile_history">Historique</string>
     <string name="home_tile_articles">Liste des Articles</string>
     <string name="home_tile_add_product">Ajouter un Article</string>
     <string name="home_tile_stock">Gérer le Stock</string>
+    <string name="home_tile_maintenance">Entretien</string>
+    <string name="home_tile_stats">Statistiques</string>
 </resources>

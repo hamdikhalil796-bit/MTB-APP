@@ -23,6 +23,7 @@ import com.mtb.mtb.R
 import com.mtb.mtb.app.ImageUtils
 import com.mtb.mtb.app.MtbTextSizes
 import com.mtb.mtb.app.MtbWebColors
+import com.mtb.mtb.ui.theme.NeumorphicCard
 
 @Composable
 fun AddProductScreen(
@@ -71,12 +72,12 @@ fun AddProductScreen(
             .padding(16.dp),
         contentAlignment = Alignment.TopCenter
     ) {
-        Card(
+        NeumorphicCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .widthIn(max = 550.dp),
             shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = MtbWebColors.CardWhite)
+            containerColor = MtbWebColors.CardWhite
         ) {
             Column(
                 modifier = Modifier

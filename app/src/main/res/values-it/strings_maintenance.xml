@@ -1,0 +1,15 @@
+<resources>
+    <string name="maintenance_title">Manutenzione</string>
+    <string name="maintenance_search_placeholder">Cerca...</string>
+    <string name="maintenance_empty">Nessun intervento registrato.</string>
+    <string name="maintenance_add_button">+ Aggiungi intervento</string>
+    <string name="maintenance_delete_title">Eliminare questo intervento?</string>
+    <string name="maintenance_delete_confirm">Vuoi davvero eliminare \"%1$s\"? Questa azione è irreversibile.</string>
+    <string name="maintenance_add_title">Nuovo intervento</string>
+    <string name="maintenance_field_title">Titolo</string>
+    <string name="maintenance_field_title_placeholder">Es: Cambio lama - Sega 1</string>
+    <string name="maintenance_field_date">Data</string>
+    <string name="maintenance_field_notes">Note</string>
+    <string name="maintenance_field_notes_placeholder">Dettagli, pezzi sostituiti, osservazioni...</string>
+    <string name="maintenance_title_required">Il titolo è obbligatorio.</string>
+</resources>

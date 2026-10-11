@@ -3,6 +3,7 @@
 
     <!-- Shared strings reused across multiple screens -->
     <string name="common_cancel">Cancel</string>
+    <string name="common_save">Save</string>
     <string name="common_back">← Back</string>
     <string name="common_back_home">← Home</string>
     <string name="common_add_line">+ Line</string>

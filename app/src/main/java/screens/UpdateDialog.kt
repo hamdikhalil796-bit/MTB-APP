@@ -36,6 +36,7 @@ import com.mtb.mtb.app.AppUpdateInfo
 import com.mtb.mtb.app.AppUpdateManager
 import com.mtb.mtb.app.MtbTextSizes
 import com.mtb.mtb.app.MtbWebColors
+import com.mtb.mtb.ui.theme.NeumorphicCard
 
 private enum class UpdateStage { IDLE, DOWNLOADING, NEEDS_INSTALL_PERMISSION, ERROR }
 
@@ -125,10 +126,11 @@ fun UpdateDialog(
             modifier = Modifier.fillMaxWidth().padding(24.dp),
             contentAlignment = Alignment.Center
         ) {
-            Card(
+            AnimatedDialogSurface {
+            NeumorphicCard(
                 modifier = Modifier.fillMaxWidth().widthIn(max = 420.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = MtbWebColors.CardWhite)
+                shape = RoundedCornerShape(16.dp),
+                containerColor = MtbWebColors.CardWhite
             ) {
                 Column(modifier = Modifier.padding(24.dp).fillMaxWidth()) {
                     Text(
@@ -246,6 +248,7 @@ fun UpdateDialog(
                         }
                     }
                 }
+            }
             }
         }
     }

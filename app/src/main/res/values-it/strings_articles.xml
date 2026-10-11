@@ -1,20 +1,28 @@
 <resources>
     <!-- ArticlesScreen -->
     <string name="articles_title">Elenco Articoli</string>
+    <string name="articles_count">%1$d articoli</string>
     <string name="articles_search_placeholder">Cerca per ID o articolo...</string>
     <string name="articles_empty">Nessun articolo corrispondente trovato.</string>
     <string name="articles_view_photo">Vedi</string>
     <string name="articles_add_button">+ Aggiungi articolo</string>
     <string name="articles_delete_title">Eliminare l\'articolo?</string>
     <string name="articles_delete_confirm">Vuoi davvero eliminare \"%1$s\" (%2$s)? Questa azione è irreversibile.</string>
-    <string name="gallery_no_photo">Nessuna foto salvata per questo articolo.</string>
-    <string name="gallery_chooser_title">Apri immagine con</string>
-    <string name="gallery_error">Errore durante l\'apertura dell\'immagine.</string>
+
+    <!-- ArticleInfoDialog (photo + notes popup opened from "Vedi") -->
+    <string name="article_info_title">Informazioni sull\'articolo</string>
+    <string name="article_info_no_photo">Nessuna foto</string>
+    <string name="article_info_photo_import">Aggiungi una foto</string>
+    <string name="article_info_photo_change">Cambia foto</string>
+    <string name="article_info_notes_label">Note</string>
+    <string name="article_info_notes_placeholder">Aggiungi note o informazioni su questo articolo...</string>
+    <string name="article_info_save_button">Salva</string>
 
     <!-- Shared between AddProductScreen + EditProductDialog -->
     <string name="field_id_label">Codice RIF / ID</string>
     <string name="field_description_label">ARTICOLO (Descrizione)</string>
     <string name="field_photo_label">FOTO</string>
+    <string name="field_info_label">Info</string>
 
     <!-- AddProductScreen -->
     <string name="add_product_view_all">Vedi tutti gli articoli →</string>
@@ -35,5 +43,6 @@
     <string name="edit_product_photo_attached">Foto allegata</string>
     <string name="edit_product_photo_none">Nessuna foto</string>
     <string name="edit_product_photo_decode_error">Impossibile elaborare questa immagine. È stata mantenuta la foto precedente.</string>
+    <string name="edit_product_duplicate_id">Il riferimento "%1$s" è già utilizzato da un altro articolo. Scegli un riferimento diverso.</string>
     <string name="edit_product_update_button">Aggiorna</string>
 </resources>
